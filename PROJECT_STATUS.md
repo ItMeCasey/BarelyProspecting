@@ -1,6 +1,6 @@
 # Project Status
 <!-- status-format: 1 -->
-Updated: 2026-11-11
+Updated: 2026-11-12
 Summary: Barely Prospecting is built for all ten targets with the full progression, the void-island preset and BEI, JEI, REI, EMI, SMWTI and Jade integrations; the self test passes on all of them and three builds ran a real-client tour and every viewer was opened in a real client.
 Spend: none
 
@@ -38,4 +38,4 @@ Spend: none
 - [x] Icon, banners, branding/LISTING.md, curseforge/DESCRIPTION.md (no install or testing section) (w:3)
 - [x] Wiki draft in the site folder (11 pages incl. generated drop tables); not deployed, PM deploys (w:3)
 - [x] README, CHANGELOG, docs/DESIGN.md, docs/known-gaps.md (w:1)
-- [ ] Wiki deploy, CurseForge listing and first release (PM) (w:2)
+- [x] Wiki deploy, CurseForge listing and first release (PM; 2026.11.1 tagged, 10 files uploaded, wiki live, 2026-11-12) (w:2)
