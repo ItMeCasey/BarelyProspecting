@@ -6,7 +6,7 @@ Everything needed to fill in the CurseForge project form. Files are in `branding
 |---|---|
 | Project ID | 1799887 (set in `.github/scripts/publish_curseforge.py`) |
 | Name | Barely Prospecting |
-| Slug / URL | `barelyprospecting` |
+| Slug / URL | `barely-prospecting` (https://www.curseforge.com/minecraft/mc-mods/barely-prospecting) |
 | Mod id | `barelyprospecting` |
 | Icon / logo | `icon/icon_512.png` (square, at least 400x400) |
 | Class | Mods |
