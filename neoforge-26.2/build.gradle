@@ -95,3 +95,42 @@ if (project.hasProperty('devTools')) {
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
+
+// --- Optional integrations (BEI, SMWTI, Jade, JEI, REI, EMI): compile-only, loaded by the other mod when it is installed ---
+def imcUser = System.getenv("IMC_MAVEN_USER") ?: project.findProperty("imcMavenUser")
+def imcPass = System.getenv("IMC_MAVEN_PASSWORD") ?: project.findProperty("imcMavenPassword")
+repositories {
+    if (imcUser && imcPass) {
+        maven {
+            name = 'ItMeCasey Maven'
+            url = 'https://itmecasey.com/maven'
+            credentials { username = imcUser; password = imcPass }
+        }
+    }
+    maven { name = 'Cursemaven (fallback)'; url = 'https://cursemaven.com'; content { includeGroup 'curse.maven' } }
+}
+configurations {
+    localRuntime
+    runtimeClasspath.extendsFrom localRuntime
+}
+def devMods = (project.findProperty("devMods") ?: "").toString().split(",").collect { it.trim() }
+dependencies {
+    if (imcUser && imcPass) {
+        compileOnly "com.itmecasey:bei-api:26.2-neoforge-2026.11.7"
+        compileOnly "com.itmecasey:smwti-api:26.2-neoforge-2026.11.3"
+    } else {
+        compileOnly files('libs/bei-api-26.2-neoforge-2026.11.7.jar', 'libs/smwti-api-26.2-neoforge-2026.11.3.jar')
+    }
+    compileOnly "curse.maven:jade-324717:8755115"
+    if (devMods.contains("jade") || devMods.contains("all")) localRuntime "curse.maven:jade-324717:8755115"
+    compileOnly "curse.maven:jei-238222:9352384"
+    if (devMods.contains("jei") || devMods.contains("all")) localRuntime "curse.maven:jei-238222:9352384"
+    compileOnly "curse.maven:roughly-enough-items-310111:8271756"
+    if (devMods.contains("rei") || devMods.contains("all")) localRuntime "curse.maven:roughly-enough-items-310111:8271756"
+    if (devMods.contains("bei") || devMods.contains("smwti") || devMods.contains("all")) {
+        fileTree("devlibs").matching { include "*.jar" }.each { f -> if ((devMods.contains("bei") && f.name.startsWith("bei-")) || (devMods.contains("smwti") && f.name.startsWith("smwti-")) || devMods.contains("all")) { runtimeOnly files(f) } }
+    }
+}
+sourceSets.main.java.srcDir '../version-26.2/src/jade/java'
+sourceSets.main.java.srcDir '../version-26.2/src/jei/java'
+sourceSets.main.java.srcDir '../version-26.2/src/rei/java'

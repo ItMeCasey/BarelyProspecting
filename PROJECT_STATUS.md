@@ -6,7 +6,7 @@ Spend: none
 
 ## Setup
 - [x] Local repo, license, README, SPEC.md and public GitHub repo ItMeCasey/BarelyProspecting (w:1)
-- [ ] CurseForge project and PROJECT_ID (Casey creates the project; PM records the id) (w:1)
+- [x] CurseForge project created, id 1799887 recorded in the upload script and LISTING.md (w:1)
 
 ## Build
 - [x] Ten Gradle modules (Forge and NeoForge for 26.3, 26.2, 26.1.2, 1.21.1, 1.20.1), version 2026.11.1, CI workflows, issue templates, publish script with PROJECT_ID 0 (w:3)

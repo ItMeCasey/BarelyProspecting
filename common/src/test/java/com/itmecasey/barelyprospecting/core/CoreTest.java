@@ -332,4 +332,24 @@ class CoreTest {
             Settings.install(null);
         }
     }
+
+    @Test
+    void viewerPagesCoverEveryStep() {
+        assertEquals(5, ViewerData.pages(ViewerData.Kind.PAN).size());
+        assertEquals(7, ViewerData.pages(ViewerData.Kind.HAMMER).size());
+        assertEquals(Recipes.soaks().size(), ViewerData.pages(ViewerData.Kind.SOAK).size());
+        assertEquals(2, ViewerData.pages(ViewerData.Kind.LURE).size());
+        assertTrue(ViewerData.pages(ViewerData.Kind.MELT).size() >= 5);
+        ViewerData.Page grit = ViewerData.pages(ViewerData.Kind.PAN).get(1);
+        assertEquals("barelyprospecting:grit", grit.inputs().get(0).get(0));
+        assertEquals(5, grit.catalysts().size());
+        // The viewer chance is the same number the roll uses.
+        ViewerData.Out gold = grit.outputs().stream().filter(o -> o.item().equals("barelyprospecting:gold_flake")).findFirst().orElseThrow();
+        assertEquals(0.0f, gold.chances()[0], 1e-9);
+        assertTrue(gold.chances()[3] > 0);
+        for (ViewerData.Page page : ViewerData.all()) {
+            assertFalse(page.outputs().isEmpty(), page.id());
+            assertFalse(page.inputs().isEmpty(), page.id());
+        }
+    }
 }

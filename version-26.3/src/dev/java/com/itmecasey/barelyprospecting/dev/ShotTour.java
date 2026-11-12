@@ -183,6 +183,10 @@ public final class ShotTour {
     }
 
     private static void plan() {
+        if ("compat".equals(System.getenv("BARELYPROSPECTING_SHOTS"))) {
+            planCompat();
+            return;
+        }
         then(0, () -> {
             server("time set noon", "weather clear", "kill @e[type=!player]", "clear @p", "gamerule spawn_radius 0");
             Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
@@ -322,6 +326,154 @@ public final class ShotTour {
             stage = Stage.DONE;
             minecraft.stop();
         });
+    }
+
+    // ---- the compatibility tour: Show Me What This Is on the blocks, Barely Enough Items on the recipes ----
+
+    private static void planCompat() {
+        then(0, () -> {
+            server("time set noon", "weather clear", "kill @e[type=!player]", "clear @p");
+            Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
+        });
+        then(10, () -> server("fill " + (SX - 8) + " " + SY + " " + (SZ - 8) + " " + (SX + 8) + " " + SY + " " + (SZ + 8) + " minecraft:smooth_stone",
+                "fill " + (SX - 8) + " " + (SY + 1) + " " + (SZ - 8) + " " + (SX + 8) + " " + (SY + 6) + " " + (SZ + 8) + " minecraft:air",
+                "tp @p " + (SX + 0.5) + " " + (SY + 1) + " " + (SZ + 0.5) + " 0 0",
+                "setblock " + xyz(0, 0, 4) + " barelyprospecting:basin[water=3]", "setblock " + xyz(2, 0, 4) + " barelyprospecting:crucible[lit=true,lava=2]",
+                "setblock " + xyz(-2, 0, 4) + " barelyprospecting:lure[meals=2]", "setblock " + xyz(4, 0, 4) + " barelyprospecting:silt[wear=2]",
+                "setblock " + xyz(-4, 0, 4) + " barelyprospecting:nether_silt"));
+        // The server needs the blocks fed so the lines have something to say.
+        then(20, () -> onServerThread(server -> {
+            var level = server.overworld();
+            if (level.getBlockEntity(at(0, 0, 4)) instanceof BasinBlockEntity b) {
+                b.basin().fill(com.itmecasey.barelyprospecting.core.Recipes.Fluid.WATER, 4);
+                b.basin().start("barelyprospecting:silt", "minecraft:overworld");
+                b.changed();
+            }
+            if (level.getBlockEntity(at(2, 0, 4)) instanceof CrucibleBlockEntity c) {
+                c.crucible().load(1500, 250, 600);
+                c.changed();
+            }
+            if (level.getBlockEntity(at(-2, 0, 4)) instanceof LureBlockEntity l) {
+                l.lure().load("farm", 3, 200);
+                l.changed();
+            }
+        }));
+        String[] names = {"basin", "crucible", "lure", "silt", "nether_silt"};
+        int[] xs = {0, 2, -2, 4, -4};
+        for (int i = 0; i < names.length; i++) {
+            final int x = xs[i];
+            then(5, () -> view(x * 0.7, 1.6, 1.5, x, 0, 4));
+            shoot("smwti_" + names[i], 45);
+        }
+        // Barely Enough Items: the inventory with the browser, then the recipe popups.
+        then(5, () -> server("tp @p " + (SX + 0.5) + " " + (SY + 1.5) + " " + (SZ + 0.5) + " 0 0", "gamemode survival @a"));
+        then(40, () -> Minecraft.getInstance().gui.setScreen(new InventoryScreen(Minecraft.getInstance().player)));
+        then(40, () -> beiSearch("barelyprospecting"));
+        shoot("bei_browser", 30);
+        String[][] queries = {{"silt", "false", "bei_silt_recipes"}, {"wooden_panning_tray", "true", "bei_tray_uses"}, {"pick_hammer", "true", "bei_hammer_uses"},
+                {"clay_ball", "true", "bei_clay_uses"}, {"obsidian", "false", "bei_obsidian"}, {"clay_bucket_lava", "false", "bei_lava_bucket"},
+                {"ender_pearl", "false", "bei_pearl"}, {"crucible", "true", "bei_crucible_uses"}, {"lure", "true", "bei_lure_uses"}};
+        for (String[] q : queries) {
+            then(25, () -> beiOpen(q[0], Boolean.parseBoolean(q[1])));
+            then(20, () -> LOGGER.info("PROSPECT-SHOTS BEI {} popup open={}", q[0], beiPopupOpen()));
+            shoot(q[2], 10);
+        }
+        for (String category : new String[] {"panning", "hammering", "soaking", "melting", "lure"}) {
+            then(25, () -> beiOpenType("barelyprospecting:" + category));
+            then(20, () -> LOGGER.info("PROSPECT-SHOTS BEI category {} popup open={}", category, beiPopupOpen()));
+            shoot("bei_category_" + category, 10);
+        }
+        then(20, () -> {
+            Minecraft minecraft = Minecraft.getInstance();
+            minecraft.options.pauseOnLostFocus = pauseOnLostFocus;
+            LOGGER.info("PROSPECT-SHOTS DONE");
+            stage = Stage.DONE;
+            minecraft.stop();
+        });
+    }
+
+    private static Object beiField(String name) throws ReflectiveOperationException {
+        java.lang.reflect.Field field = Class.forName("com.itmecasey.bei.client.BrowserPanel").getDeclaredField(name);
+        field.setAccessible(true);
+        return field.get(null);
+    }
+
+    private static void beiSearch(String text) {
+        try {
+            ((net.minecraft.client.gui.components.EditBox) beiField("box")).setValue(text);
+        } catch (ReflectiveOperationException e) {
+            LOGGER.warn("PROSPECT-SHOTS could not reach the BEI search box", e);
+        }
+    }
+
+    private static void beiClosePopup() {
+        try {
+            Class.forName("com.itmecasey.bei.client.RecipePopup").getMethod("close").invoke(null);
+        } catch (ReflectiveOperationException e) {
+            LOGGER.warn("PROSPECT-SHOTS could not close the popup", e);
+        }
+    }
+
+    private static void beiOpen(String path, boolean uses) {
+        try {
+            net.minecraft.world.item.Item item = ProspectMod.item(path.contains(":") ? path : (path.equals("obsidian") || path.equals("ender_pearl") || path.equals("clay_ball") ? "minecraft:" : "barelyprospecting:") + path);
+            Class.forName("com.itmecasey.bei.client.RecipePopup").getMethod("open", net.minecraft.world.item.Item.class, boolean.class).invoke(null, item, uses);
+        } catch (ReflectiveOperationException e) {
+            LOGGER.warn("PROSPECT-SHOTS could not open the BEI popup", e);
+        }
+    }
+
+    private static void beiOpenType(String id) {
+        try {
+            Class.forName("com.itmecasey.bei.client.RecipePopup").getMethod("openType", String.class).invoke(null, id);
+        } catch (ReflectiveOperationException e) {
+            LOGGER.warn("PROSPECT-SHOTS could not open the BEI category", e);
+        }
+    }
+
+    private static boolean beiPopupOpen() {
+        try {
+            return (Boolean) Class.forName("com.itmecasey.bei.client.RecipePopup").getMethod("isOpen").invoke(null);
+        } catch (ReflectiveOperationException e) {
+            return false;
+        }
+    }
+
+    /** Moves the game cursor over the first cell of the BEI grid (twice: the game ignores a first move). */
+    private static void beiMoveToFirstCell() {
+        try {
+            Minecraft game = Minecraft.getInstance();
+            int gx = (Integer) beiField("gridX") + 9;
+            int gy = (Integer) beiField("gridY") + 9;
+            double sx = gx * (double) game.getWindow().getScreenWidth() / game.getWindow().getGuiScaledWidth();
+            double sy = gy * (double) game.getWindow().getScreenHeight() / game.getWindow().getGuiScaledHeight();
+            java.lang.reflect.Method move = net.minecraft.client.MouseHandler.class.getDeclaredMethod("onMove", long.class, double.class, double.class);
+            move.setAccessible(true);
+            move.invoke(game.mouseHandler, game.getWindow().handle(), sx + 3, sy);
+            move.invoke(game.mouseHandler, game.getWindow().handle(), sx, sy);
+        } catch (ReflectiveOperationException e) {
+            LOGGER.warn("PROSPECT-SHOTS could not move the game cursor", e);
+        }
+    }
+
+    /** A click through the game mouse handler (button 0 recipes, 1 uses), wherever the game cursor is. */
+    private static void beiClick(int button) {
+        try {
+            Minecraft game = Minecraft.getInstance();
+            java.lang.reflect.Method press = net.minecraft.client.MouseHandler.class.getDeclaredMethod("onButton", long.class, net.minecraft.client.input.MouseButtonInfo.class, int.class);
+            press.setAccessible(true);
+            press.invoke(game.mouseHandler, game.getWindow().handle(), new net.minecraft.client.input.MouseButtonInfo(button, 0), 1);
+            press.invoke(game.mouseHandler, game.getWindow().handle(), new net.minecraft.client.input.MouseButtonInfo(button, 0), 0);
+        } catch (ReflectiveOperationException e) {
+            LOGGER.warn("PROSPECT-SHOTS could not click", e);
+        }
+    }
+
+    private static void onServerThread(java.util.function.Consumer<MinecraftServer> action) {
+        MinecraftServer server = Minecraft.getInstance().getSingleplayerServer();
+        if (server != null) {
+            server.execute(() -> action.accept(server));
+        }
     }
 
     // ---- helpers ----

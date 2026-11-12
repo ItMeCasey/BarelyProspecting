@@ -4,7 +4,7 @@ Everything needed to fill in the CurseForge project form. Files are in `branding
 
 | Field | CurseForge |
 |---|---|
-| Project ID | not created yet (Casey creates the project; record the id here and in `.github/scripts/publish_curseforge.py`, where `PROJECT_ID` is 0) |
+| Project ID | 1799887 (set in `.github/scripts/publish_curseforge.py`) |
 | Name | Barely Prospecting |
 | Slug / URL | `barelyprospecting` |
 | Mod id | `barelyprospecting` |

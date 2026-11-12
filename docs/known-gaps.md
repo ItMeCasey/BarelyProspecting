@@ -8,4 +8,4 @@ The user-facing list is the wiki draft (`wiki/barelyprospecting/pages/known-gaps
 - The progress "ring" is drawn with particles around the block, not as a screen overlay.
 - Balance is a first pass and was never played through.
 - Multiplayer with real connections is untested.
-- The `PROJECT_ID` in `.github/scripts/publish_curseforge.py` is 0 until the CurseForge project exists.
+- The CurseForge project id is 1799887.

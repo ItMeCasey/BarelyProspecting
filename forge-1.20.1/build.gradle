@@ -121,3 +121,38 @@ if (project.hasProperty('devTools')) {
 tasks.withType(Test).configureEach {
     useJUnitPlatform()
 }
+
+// --- Optional integrations (BEI, SMWTI, Jade, JEI, REI, EMI): compile-only, loaded by the other mod when it is installed ---
+def imcUser = System.getenv("IMC_MAVEN_USER") ?: project.findProperty("imcMavenUser")
+def imcPass = System.getenv("IMC_MAVEN_PASSWORD") ?: project.findProperty("imcMavenPassword")
+repositories {
+    if (imcUser && imcPass) {
+        maven {
+            name = 'ItMeCasey Maven'
+            url = 'https://itmecasey.com/maven'
+            credentials { username = imcUser; password = imcPass }
+        }
+    }
+    maven { name = 'Cursemaven (fallback)'; url = 'https://cursemaven.com'; content { includeGroup 'curse.maven' } }
+}
+def devMods = (project.findProperty("devMods") ?: "").toString().split(",").collect { it.trim() }
+dependencies {
+    if (imcUser && imcPass) {
+        compileOnly "com.itmecasey:bei-api:1.20.1-forge-2026.11.7"
+        compileOnly "com.itmecasey:smwti-api:1.20.1-forge-2026.11.2"
+    } else {
+        compileOnly files('libs/bei-api-1.20.1-forge-2026.11.7.jar', 'libs/smwti-api-1.20.1-forge-2026.11.2.jar')
+    }
+    compileOnly fg.deobf("curse.maven:jade-324717:8479276")
+    if (devMods.contains("jade") || devMods.contains("all")) runtimeOnly fg.deobf("curse.maven:jade-324717:8479276")
+    compileOnly fg.deobf("curse.maven:jei-238222:9394360")
+    if (devMods.contains("jei") || devMods.contains("all")) runtimeOnly fg.deobf("curse.maven:jei-238222:9394360")
+    compileOnly fg.deobf("curse.maven:roughly-enough-items-310111:5846923")
+    if (devMods.contains("rei") || devMods.contains("all")) runtimeOnly fg.deobf("curse.maven:roughly-enough-items-310111:5846923")
+    compileOnly fg.deobf("curse.maven:emi-580555:8081375")
+    if (devMods.contains("emi") || devMods.contains("all")) runtimeOnly fg.deobf("curse.maven:emi-580555:8081375")
+}
+sourceSets.main.java.srcDir '../version-1.20.1/src/jade/java'
+sourceSets.main.java.srcDir '../version-1.20.1/src/jei/java'
+sourceSets.main.java.srcDir '../version-1.20.1/src/rei/java'
+sourceSets.main.java.srcDir '../version-1.20.1/src/emi/java'
