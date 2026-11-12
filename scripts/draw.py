@@ -1,20 +1,22 @@
-"""Pixel-art drawing helpers and every texture of the mod, at 32x32 (original art, drawn with code, nothing from Minecraft).
+"""Pixel-art drawing helpers and every texture of the mod, at 16x16 like the game's own (original art, drawn with code, nothing from Minecraft).
 
-Shapes are lit from the top left: each filled shape gets a highlight, a body tone and a shadow edge, then a dark outline.
+The style follows vanilla: a few flat colors per material (no gradients, no smooth noise), light from the top left with a highlight,
+a body tone and a shadow tone placed by hand or by hard thresholds, a one pixel outline in a darker shade of the material for items,
+and blocks that are a small palette scattered in clusters.
 """
 import math
 import random
 from PIL import Image
 
-N = 32
+N = 16
 
 
-def clamp(v):
-    return max(0, min(255, int(v)))
+def rgb(c):
+    return tuple(c[:3]) + (255,)
 
 
-def tone(color, amount):
-    return tuple(clamp(c + amount) for c in color[:3]) + (255,)
+def darker(c, f):
+    return tuple(int(v * f) for v in c[:3]) + (255,)
 
 
 def blank():
@@ -23,37 +25,55 @@ def blank():
 
 def put(img, x, y, color):
     if 0 <= x < N and 0 <= y < N:
-        img.putpixel((x, y), color if len(color) == 4 else tuple(color) + (255,))
+        img.putpixel((x, y), rgb(color))
 
 
-def ellipse(img, cx, cy, rx, ry, color, light=34, rng=None, grain=6):
-    """A lit ellipse: bright upper left, dark lower right, optional grain."""
+def sprite(rows, palette):
+    """An item from text rows; '.' is empty, every other character looks up the palette."""
+    img = blank()
+    for y, row in enumerate(rows):
+        for x, ch in enumerate(row):
+            if ch != '.' and ch in palette:
+                put(img, x, y, palette[ch])
+    return img
+
+
+def outline(img, factor=0.42):
+    """One pixel outline around the drawing, in a dark shade of the pixel it touches (vanilla items do the same)."""
+    src = img.copy()
+    for y in range(N):
+        for x in range(N):
+            if src.getpixel((x, y))[3] == 0:
+                best = None
+                for dx, dy in ((-1, 0), (0, -1), (1, 0), (0, 1)):
+                    nx, ny = x + dx, y + dy
+                    if 0 <= nx < N and 0 <= ny < N:
+                        p = src.getpixel((nx, ny))
+                        if p[3] > 0:
+                            best = p
+                            if dx + dy < 0:
+                                break
+                if best is not None:
+                    put(img, x, y, darker(best, factor))
+    return img
+
+
+def band(lit, pal, hi_at=0.35, lo_at=-0.35):
+    """Three flat tones from a light value (positive is toward the top left)."""
+    if lit > hi_at:
+        return pal[0]
+    if lit < lo_at:
+        return pal[2]
+    return pal[1]
+
+
+def blob(img, cx, cy, rx, ry, pal, hi_at=0.35, lo_at=-0.3):
+    """A rounded shape in three flat tones, lit from the top left."""
     for y in range(N):
         for x in range(N):
             dx, dy = (x + 0.5 - cx) / rx, (y + 0.5 - cy) / ry
-            d = dx * dx + dy * dy
-            if d <= 1.0:
-                lit = (-dx - dy) * 0.5
-                amount = lit * light - d * 10
-                if rng:
-                    amount += rng.randint(-grain, grain)
-                put(img, x, y, tone(color, amount))
-
-
-def polygon(img, pts, color, light=30, rng=None, grain=5):
-    """A filled polygon with the same top-left light, by scanline."""
-    xs = [p[0] for p in pts]
-    ys = [p[1] for p in pts]
-    cx, cy = sum(xs) / len(xs), sum(ys) / len(ys)
-    w, h = max(1, max(xs) - min(xs)), max(1, max(ys) - min(ys))
-    for y in range(N):
-        for x in range(N):
-            if inside(pts, x + 0.5, y + 0.5):
-                lit = (-(x + 0.5 - cx) / w - (y + 0.5 - cy) / h)
-                amount = lit * light
-                if rng:
-                    amount += rng.randint(-grain, grain)
-                put(img, x, y, tone(color, amount))
+            if dx * dx + dy * dy <= 1.0:
+                put(img, x, y, band((-dx - dy) * 0.5, pal, hi_at, lo_at))
 
 
 def inside(pts, px, py):
@@ -68,300 +88,363 @@ def inside(pts, px, py):
     return ok
 
 
-def line(img, x0, y0, x1, y1, color, width=1.0, rng=None, grain=0):
-    steps = int(max(abs(x1 - x0), abs(y1 - y0)) * 3) + 1
-    for s in range(steps + 1):
-        t = s / steps
-        x, y = x0 + (x1 - x0) * t, y0 + (y1 - y0) * t
-        r = width / 2.0
-        for yy in range(int(y - r - 1), int(y + r + 2)):
-            for xx in range(int(x - r - 1), int(x + r + 2)):
-                if (xx + 0.5 - x) ** 2 + (yy + 0.5 - y) ** 2 <= r * r + 0.2:
-                    shade = (-(xx + 0.5 - x) - (yy + 0.5 - y)) * 7
-                    if rng:
-                        shade += rng.randint(-grain, grain)
-                    put(img, xx, yy, tone(color, shade))
-
-
-def outline(img, color=(26, 20, 22)):
-    """A one pixel dark outline around everything that is drawn, a little darker at the bottom right."""
-    src = img.copy()
+def poly(img, pts, pal, hi_at=0.3, lo_at=-0.3, axis=(-1, -1)):
+    """A polygon in three flat tones, banded across the given direction."""
+    xs, ys = [p[0] for p in pts], [p[1] for p in pts]
+    cx, cy = (min(xs) + max(xs)) / 2, (min(ys) + max(ys)) / 2
+    ext = max(max(xs) - min(xs), max(ys) - min(ys)) / 2 or 1
     for y in range(N):
         for x in range(N):
-            if src.getpixel((x, y))[3] == 0:
-                for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-                    nx, ny = x + dx, y + dy
-                    if 0 <= nx < N and 0 <= ny < N and src.getpixel((nx, ny))[3] > 0:
-                        put(img, x, y, tone(color, 0 if (dx + dy) < 0 else -8))
-                        break
-    return img
+            if inside(pts, x + 0.5, y + 0.5):
+                lit = ((x + 0.5 - cx) * axis[0] + (y + 0.5 - cy) * axis[1]) / (ext * 1.4)
+                put(img, x, y, band(lit, pal, hi_at, lo_at))
 
 
-def speckle(img, rng, color, count, size=1):
-    for _ in range(count):
-        x, y = rng.randint(0, N - 1), rng.randint(0, N - 1)
-        if img.getpixel((x, y))[3] > 0:
-            for dx in range(size):
-                for dy in range(size):
-                    if x + dx < N and y + dy < N and img.getpixel((x + dx, y + dy))[3] > 0:
-                        put(img, x + dx, y + dy, tone(color, rng.randint(-10, 10)))
+def steps(img, p0, p1, color_a, color_b=None):
+    """A one pixel wide line, optionally alternating two colors."""
+    (x0, y0), (x1, y1) = p0, p1
+    n = max(abs(x1 - x0), abs(y1 - y0))
+    for i in range(n + 1):
+        t = i / n if n else 0
+        x, y = round(x0 + (x1 - x0) * t), round(y0 + (y1 - y0) * t)
+        put(img, x, y, color_b if (color_b and i % 2) else color_a)
 
 
 # ---------------------------------------------------------------- block textures
-def blotchy(base, spread, seed, cell=4, fine=7):
-    """Cloudy noise: coarse blotches plus fine grain, so large surfaces do not look like static."""
+def scatter(palette, weights, seed, cluster=0.35):
+    """A block texture from a small palette: each pixel takes a color by weight, or copies its left or upper neighbor so the colors form small clumps."""
     rng = random.Random(seed)
-    coarse = [[rng.randint(-spread, spread) for _ in range(N // cell + 2)] for _ in range(N // cell + 2)]
     img = Image.new('RGBA', (N, N))
+    grid = [[None] * N for _ in range(N)]
     for y in range(N):
         for x in range(N):
-            gx, gy = x / cell, y / cell
-            x0, y0 = int(gx), int(gy)
-            fx, fy = gx - x0, gy - y0
-            v = (coarse[y0][x0] * (1 - fx) * (1 - fy) + coarse[y0][x0 + 1] * fx * (1 - fy)
-                 + coarse[y0 + 1][x0] * (1 - fx) * fy + coarse[y0 + 1][x0 + 1] * fx * fy)
-            put(img, x, y, tone(base, v + rng.randint(-fine, fine)))
+            if rng.random() < cluster:
+                opts = []
+                if x > 0:
+                    opts.append(grid[y][x - 1])
+                if y > 0:
+                    opts.append(grid[y - 1][x])
+                if opts:
+                    grid[y][x] = rng.choice(opts)
+                    continue
+            grid[y][x] = rng.choices(palette, weights)[0]
+    # wrap the edges so the texture tiles: the first row and column copy the last
+    for i in range(N):
+        if rng.random() < 0.5:
+            grid[i][0] = grid[i][N - 1]
+        if rng.random() < 0.5:
+            grid[0][i] = grid[N - 1][i]
+    for y in range(N):
+        for x in range(N):
+            put(img, x, y, grid[y][x])
     return img
 
 
-def pit_wear(img, stage, seed):
-    """Worn pans: shallow dark dents with a lit rim, more of them at every stage."""
-    rng = random.Random(seed)
-    for _ in range(stage * 5):
-        cx, cy, r = rng.randint(3, 28), rng.randint(3, 28), rng.choice([1.6, 2.2, 2.8])
-        for y in range(int(cy - r - 1), int(cy + r + 2)):
-            for x in range(int(cx - r - 1), int(cx + r + 2)):
-                d = math.hypot(x + 0.5 - cx, y + 0.5 - cy)
-                if d <= r and 0 <= x < N and 0 <= y < N:
-                    lit = ((x + 0.5 - cx) + (y + 0.5 - cy)) / r
-                    p = img.getpixel((x, y))
-                    put(img, x, y, tone(p, -34 + lit * 10))
-                elif d <= r + 1.0 and 0 <= x < N and 0 <= y < N:
-                    p = img.getpixel((x, y))
-                    put(img, x, y, tone(p, 12))
+DENTS = [(4, 3), (11, 5), (7, 9), (3, 12), (12, 11), (9, 2), (5, 7), (13, 14), (1, 6), (10, 8)]
+
+
+def wear_dents(img, count, dark, rim):
+    """Worn pans: a few shallow dents, each a dark pixel pair with a lit pixel on its lower right, more of them at every stage."""
+    for i in range(count):
+        x, y = DENTS[i]
+        put(img, x, y, dark)
+        put(img, x + 1, y, dark)
+        put(img, x, y + 1, dark)
+        put(img, x + 1, y + 1, rim)
     return img
 
 
-def pannable(name, base, spread, speck, seed):
+def pannable(pal, speck, seed, weights=(2, 4, 3, 1)):
+    """The four wear stages of one pannable block: the same base, 0, 3, 6 and 9 dents."""
     out = []
     for wear in range(4):
-        img = blotchy(base, spread, seed)
+        img = scatter(pal, list(weights), seed)
         rng = random.Random(seed + 1)
-        for _ in range(55):
-            x, y = rng.randint(0, N - 1), rng.randint(0, N - 1)
-            put(img, x, y, tone(speck, rng.randint(-14, 14)))
-            if rng.random() < 0.4:
-                put(img, min(N - 1, x + 1), y, tone(speck, -10))
-        pit_wear(img, wear, seed + 7)
+        for _ in range(7):
+            put(img, rng.randint(0, N - 1), rng.randint(0, N - 1), speck[rng.randint(0, len(speck) - 1)])
+        wear_dents(img, (0, 3, 6, 9)[wear], darker(pal[3], 0.62), tuple(min(255, v + 34) for v in pal[0]))
         out.append(img)
     return out
 
 
 def rubble():
+    """Cobble-like chunks: a few Voronoi cells in three greys, dark mortar between, a lit top left edge on each."""
     rng = random.Random(33)
-    img = blotchy((92, 92, 98), 10, 33, cell=8, fine=5)
-    # angular chips of stone with lit top edges and dark cracks between them
-    for _ in range(14):
-        cx, cy = rng.randint(2, 29), rng.randint(2, 29)
-        r = rng.randint(3, 6)
-        pts = [(cx + math.cos(a) * r * rng.uniform(0.7, 1.2), cy + math.sin(a) * r * rng.uniform(0.7, 1.2))
-               for a in [i * math.pi / 3 + rng.uniform(-0.3, 0.3) for i in range(6)]]
-        base = rng.choice([(128, 126, 132), (112, 110, 118), (146, 144, 148), (100, 98, 106)])
-        layer = Image.new('RGBA', (N, N), (0, 0, 0, 0))
-        polygon(layer, pts, base, light=44, rng=rng, grain=5)
-        edge = layer.copy()
-        outline(edge, (52, 50, 56))
-        img.alpha_composite(edge)
-    return img
-
-
-def planks(base, seed, dark_seam=30):
-    rng = random.Random(seed)
+    seeds = [(rng.uniform(0, N), rng.uniform(0, N)) for _ in range(9)]
+    greys = [(124, 124, 130), (108, 108, 116), (140, 140, 146)]
+    tones = [rng.choice(greys) for _ in seeds]
+    mortar = (64, 62, 70)
+    cell = [[0] * N for _ in range(N)]
+    gap = [[False] * N for _ in range(N)]
+    for y in range(N):
+        for x in range(N):
+            ds = []
+            for i, (sx, sy) in enumerate(seeds):
+                best = 1e9
+                for ox in (-N, 0, N):
+                    for oy in (-N, 0, N):
+                        best = min(best, math.hypot(x + 0.5 - sx - ox, y + 0.5 - sy - oy))
+                ds.append((best, i))
+            ds.sort()
+            cell[y][x] = ds[0][1]
+            gap[y][x] = ds[1][0] - ds[0][0] < 1.1
     img = Image.new('RGBA', (N, N))
     for y in range(N):
-        plank = y // 8
-        prng = random.Random(seed + plank)
-        shift = prng.randint(-10, 10)
         for x in range(N):
-            grain = math.sin((x + plank * 7) * 0.9 + math.sin(y * 0.5) * 1.5) * 6
-            v = shift + grain + rng.randint(-4, 4)
-            if y % 8 == 7:
-                v -= dark_seam
-            if y % 8 == 0:
-                v += 10
-            if (x + plank * 13) % 29 == 0 and y % 8 in (3, 4):
-                v -= 24  # a nail
-            put(img, x, y, tone(base, v))
+            if gap[y][x]:
+                put(img, x, y, mortar)
+                continue
+            c = tones[cell[y][x]]
+            up, left = cell[(y - 1) % N][x], cell[y][(x - 1) % N]
+            if gap[(y - 1) % N][x] or gap[y][(x - 1) % N] or up != cell[y][x] or left != cell[y][x]:
+                c = tuple(min(255, v + 22) for v in c)
+            put(img, x, y, c)
     return img
 
 
-def clay_pot_side(base, seed, bands=True):
-    img = blotchy(base, 8, seed, cell=6, fine=5)
-    if bands:
-        for yy in (6, 7, 22, 23):
+def planks(pal, seed):
+    """Four horizontal boards, each four pixels high: a seam on the bottom row, a lit top row, grain streaks and a joint."""
+    hi, mid, lo, seam = pal
+    rng = random.Random(seed)
+    img = Image.new('RGBA', (N, N))
+    for b in range(4):
+        joint = rng.randint(2, 13)
+        for y in range(4):
             for x in range(N):
-                p = img.getpixel((x, yy))
-                put(img, x, yy, tone(p, -30 if yy % 2 else -16))
-        for yy in (8, 24):
-            for x in range(N):
-                p = img.getpixel((x, yy))
-                put(img, x, yy, tone(p, 14))
+                if y == 3:
+                    c = seam
+                elif y == 0:
+                    c = hi if rng.random() < 0.7 else mid
+                elif y == 1:
+                    c = mid if rng.random() < 0.8 else hi
+                else:
+                    c = mid if rng.random() < 0.55 else lo
+                put(img, x, b * 4 + y, c)
+        for _ in range(3):
+            sx, sy = rng.randint(0, N - 4), b * 4 + rng.randint(0, 2)
+            for k in range(rng.randint(2, 4)):
+                put(img, sx + k, sy, lo)
+        for y in range(3):
+            put(img, joint, b * 4 + y, seam)
+    return img
+
+
+def water():
+    rng = random.Random(8)
+    pal = [(60, 116, 210), (50, 100, 196), (42, 86, 178)]
+    img = scatter(pal, [3, 4, 2], 8, 0.5)
+    for _ in range(5):
+        x, y = rng.randint(0, N - 4), rng.randint(0, N - 1)
+        for k in range(rng.randint(2, 3)):
+            put(img, x + k, y, (110, 168, 242))
     return img
 
 
 def lava(seed):
+    pal = [(252, 178, 48), (240, 132, 24), (218, 92, 16), (176, 56, 10)]
+    img = scatter(pal, [2, 4, 3, 1], seed, 0.55)
     rng = random.Random(seed)
-    img = blotchy((222, 96, 20), 38, seed, cell=5, fine=10)
-    for _ in range(26):
-        x, y = rng.randint(0, N - 1), rng.randint(0, N - 1)
-        for dx in range(rng.randint(1, 3)):
-            put(img, min(N - 1, x + dx), y, (255, 214 - rng.randint(0, 40), 70, 255))
-    for _ in range(30):
-        x, y = rng.randint(0, N - 1), rng.randint(0, N - 1)
-        put(img, x, y, (120, 36, 10, 255))
+    for _ in range(4):
+        put(img, rng.randint(0, N - 1), rng.randint(0, N - 1), (255, 224, 110))
     return img
 
 
-def water(seed):
-    rng = random.Random(seed)
-    img = blotchy((52, 108, 200), 16, seed, cell=6, fine=6)
-    for _ in range(10):
-        x, y = rng.randint(0, N - 8), rng.randint(0, N - 1)
-        for dx in range(rng.randint(3, 7)):
-            put(img, x + dx, y, (150, 200, 250, 255))
-    return img
-
-
-def lure_top(meals, seed):
-    rng = random.Random(seed)
-    img = blotchy((120, 90, 50), 14, seed, cell=4, fine=8)
-    # twigs woven around a hollow
-    for i in range(16):
-        a = i * math.pi / 8
-        x0, y0 = 15.5 + math.cos(a) * 14, 15.5 + math.sin(a) * 14
-        x1, y1 = 15.5 + math.cos(a + 0.9) * 9, 15.5 + math.sin(a + 0.9) * 9
-        line(img, x0, y0, x1, y1, (96 + rng.randint(-14, 14), 70, 40), 2.0, rng, 4)
+def fire():
+    """A flame texture: bright yellow near the bottom, orange and red higher up, set by dithering."""
+    rng = random.Random(14)
+    img = Image.new('RGBA', (N, N))
+    cols = [(255, 232, 120), (250, 190, 44), (236, 128, 22), (190, 66, 12)]
     for y in range(N):
         for x in range(N):
-            d = math.hypot(x + 0.5 - 16, y + 0.5 - 16)
-            if d < 7.2:
-                put(img, x, y, tone((58, 42, 26), -d * 2 + rng.randint(-5, 5)))
-    seeds = [(232, 208, 120), (214, 186, 98), (240, 224, 150)]
-    for k in range(meals * 6):
-        ang = rng.uniform(0, 2 * math.pi)
-        r = rng.uniform(0, 5.2)
-        x, y = int(16 + math.cos(ang) * r), int(16 + math.sin(ang) * r)
-        c = rng.choice(seeds)
-        put(img, x, y, c + (255,))
-        put(img, x + 1, y, tone(c, -30))
-        put(img, x, y - 1, tone(c, 18))
+            k = (y / (N - 1)) * 3.0 + rng.uniform(-0.9, 0.9)
+            idx = 3 - max(0, min(3, int(round(k))))
+            put(img, x, y, cols[idx])
+    return img
+
+
+def clay_side(pal, seed):
+    """A pot wall: flat clay with soft speckle, a dark band near the top and the bottom with a lit line above it."""
+    hi, mid, lo, band_c = pal
+    rng = random.Random(seed)
+    img = Image.new('RGBA', (N, N))
+    for y in range(N):
+        for x in range(N):
+            r = rng.random()
+            put(img, x, y, hi if r < 0.12 else (lo if r < 0.3 else mid))
+    for y, c in ((3, band_c), (4, lo), (11, band_c), (12, lo)):
+        for x in range(N):
+            put(img, x, y, c)
+    for y in (2, 10):
+        for x in range(N):
+            put(img, x, y, hi)
+    return img
+
+
+def soot():
+    pal = [(60, 52, 50), (48, 41, 40), (36, 30, 30)]
+    return scatter(pal, [3, 4, 3], 12, 0.4)
+
+
+def lure_top(meals):
+    """The lure from above: a woven rim of twigs, a dark hollow, and a pile of seeds that grows with every meal."""
+    rng = random.Random(40)
+    img = Image.new('RGBA', (N, N))
+    rim_a, rim_b, rim_lo = (150, 108, 62), (122, 86, 48), (88, 60, 34)
+    for y in range(N):
+        for x in range(N):
+            put(img, x, y, rim_a if (x + y) % 2 == 0 else rim_b)
+            if rng.random() < 0.12:
+                put(img, x, y, rim_lo)
+    for y in range(3, 13):
+        for x in range(3, 13):
+            dx, dy = x - 7.5, y - 7.5
+            if dx * dx + dy * dy <= 22:
+                put(img, x, y, (54, 38, 24) if (dx + dy) < 1 else (40, 28, 18))
+    spots = [(6, 8), (8, 9), (9, 7), (7, 6), (6, 5), (9, 10), (5, 9), (10, 8), (7, 10)]
+    gold, pale = (236, 212, 124), (200, 172, 88)
+    for i in range(meals * 3):
+        x, y = spots[i]
+        put(img, x, y, gold)
+        put(img, x + 1, y, pale)
     return img
 
 
 # ---------------------------------------------------------------- item sprites
+STONE = [(176, 176, 184), (140, 140, 150), (104, 104, 116)]
+DIRT_OUT = 0.42
+
+
 def twig():
     img = blank()
-    rng = random.Random(3)
-    bark = (126, 90, 54)
-    line(img, 4, 28, 27, 5, bark, 3.0, rng, 5)
-    line(img, 11, 21, 7, 13, bark, 2.0, rng, 4)
-    line(img, 17, 15, 24, 18, bark, 2.0, rng, 4)
-    line(img, 22, 10, 22, 4, bark, 1.6, rng, 4)
-    for lx, ly in ((7, 12), (25, 19), (22, 3), (28, 5)):
-        polygon(img, [(lx - 2, ly + 1), (lx, ly - 3), (lx + 3, ly), (lx, ly + 3)], (84, 150, 58), 40, rng, 5)
+    hi, mid, lo = (176, 130, 76), (136, 96, 54), (100, 68, 38)
+    steps(img, (2, 14), (11, 5), mid, hi)
+    steps(img, (5, 11), (5, 8), mid, lo)
+    steps(img, (8, 8), (11, 8), mid, lo)
+    leaf_hi, leaf, leaf_lo = (136, 204, 84), (84, 152, 52), (54, 106, 38)
+    for x, y, c in ((4, 7, leaf), (5, 7, leaf_hi), (4, 6, leaf_lo), (5, 6, leaf),
+                    (12, 8, leaf), (12, 7, leaf_hi), (13, 8, leaf_lo), (12, 9, leaf_lo),
+                    (12, 4, leaf), (13, 3, leaf_hi), (12, 3, leaf_hi), (13, 4, leaf_lo), (14, 3, leaf), (13, 2, leaf_lo)):
+        put(img, x, y, c)
     return outline(img)
 
 
 def pebble():
     img = blank()
-    rng = random.Random(4)
-    ellipse(img, 11, 20, 8, 6, (132, 132, 140), 44, rng, 7)
-    ellipse(img, 22, 17, 6, 5, (110, 108, 118), 40, rng, 7)
-    ellipse(img, 20, 25, 5, 4, (150, 148, 154), 40, rng, 7)
+    blob(img, 5.8, 10.2, 4.2, 3.4, STONE)
+    blob(img, 11.2, 8.0, 3.2, 2.8, [(160, 160, 170), (126, 126, 138), (94, 94, 108)])
+    blob(img, 10.6, 12.2, 2.9, 2.2, [(188, 188, 194), (150, 150, 158), (112, 112, 122)])
+    put(img, 4, 8, (214, 214, 220))
+    put(img, 10, 6, (200, 200, 208))
     return outline(img)
 
 
-def dust(base):
-    img = blank()
-    rng = random.Random(5)
-    for y in range(N):
-        for x in range(N):
-            dx, dy = (x + 0.5 - 16) / 13.0, (y + 0.5 - 24) / 12.0
-            h = 1.0 - dx * dx
-            if h > 0 and dy < 0 and (y + 0.5) > 24 - 14 * h * h and (y + 0.5) < 27 + (1 - abs(dx)) * 2:
-                lit = (-dx - dy * 0.6) * 22
-                put(img, x, y, tone(base, lit + rng.randint(-9, 9)))
-    speckle(img, rng, tone(base, 44), 20)
+def dust(pal):
+    code = {'h': pal[0], 'm': pal[1], 'l': pal[2]}
+    rows = ['................',
+            '................',
+            '................',
+            '................',
+            '.......hh.......',
+            '.....hhhmm......',
+            '....hhmmmmmm....',
+            '...hhmmmlmmmm...',
+            '..hhmmmmmmmmml..',
+            '..hmmlmmmmmlmml.',
+            '...lmmmmlmmmmll.',
+            '....llllllllll..',
+            '................',
+            '................',
+            '................',
+            '................']
+    img = sprite(rows, code)
+    for x, y in ((6, 6), (9, 8), (5, 9), (11, 9)):
+        put(img, x, y, (132, 132, 146))
     return outline(img)
 
 
-def flakes(base):
+def flakes(pal):
+    hi, mid, lo = pal
     img = blank()
-    rng = random.Random(base[0])
-    for cx, cy, r in ((9, 21, 5), (21, 13, 6), (22, 24, 4), (11, 9, 3)):
-        pts = [(cx + math.cos(a) * r * rng.uniform(0.6, 1.1), cy + math.sin(a) * r * rng.uniform(0.6, 1.1))
-               for a in [i * math.pi / 2.5 + rng.uniform(-0.4, 0.4) for i in range(5)]]
-        polygon(img, pts, base, 56, rng, 6)
-    for _ in range(7):
-        x, y = rng.randint(4, 27), rng.randint(4, 27)
-        if img.getpixel((x, y))[3] > 0:
-            put(img, x, y, (255, 255, 255, 255))
+    shapes = [
+        (3, 9, ['hh.', 'hmm', '.ml']),
+        (8, 4, ['.hhh', 'hmmm', 'mmml', '.ll.']),
+        (9, 10, ['.hh.', 'hmml', '.mll']),
+        (4, 4, ['hm', 'ml']),
+    ]
+    code = {'h': hi, 'm': mid, 'l': lo}
+    for ox, oy, rows in shapes:
+        for dy, row in enumerate(rows):
+            for dx, ch in enumerate(row):
+                if ch in code:
+                    put(img, ox + dx, oy + dy, code[ch])
+    for x, y in ((9, 5), (4, 10), (10, 11)):
+        put(img, x, y, (255, 255, 240))
     return outline(img)
 
 
 def shard():
     img = blank()
-    rng = random.Random(8)
-    polygon(img, [(8, 28), (11, 17), (21, 3), (26, 9), (17, 22)], (74, 206, 224), 60, rng, 4)
-    polygon(img, [(11, 17), (21, 3), (19, 15)], (170, 246, 252), 30, rng, 3)
-    polygon(img, [(17, 22), (26, 9), (22, 21)], (30, 128, 160), 20, rng, 3)
-    line(img, 21, 5, 12, 20, (230, 255, 255), 1.0)
-    for x, y in ((24, 6), (26, 4), (5, 14)):
-        put(img, x, y, (255, 255, 255, 255))
-        put(img, x + 1, y, (190, 250, 255, 255))
-        put(img, x, y + 1, (190, 250, 255, 255))
+    poly(img, [(2.5, 14), (4, 8.5), (10.5, 1.5), (14.5, 4.5), (8.5, 12.5)], [(120, 232, 240), (64, 200, 222), (34, 140, 172)], 0.25, -0.2)
+    for x, y in ((6, 8), (7, 7), (8, 6), (9, 5)):
+        put(img, x, y, (206, 255, 255))
+    put(img, 11, 3, (230, 255, 255))
+    for x, y in ((12, 5), (11, 6), (10, 7)):
+        put(img, x, y, (34, 140, 172))
     return outline(img)
 
 
 def hammer():
     img = blank()
-    rng = random.Random(9)
-    line(img, 8, 27, 24, 11, (136, 96, 56), 3.2, rng, 5)
-    polygon(img, [(3, 8), (19, 3), (25, 13), (9, 18)], (118, 118, 128), 52, rng, 6)
-    polygon(img, [(3, 8), (19, 3), (20, 7), (5, 12)], (190, 190, 200), 20, rng, 3)
-    line(img, 12, 16, 16, 20, (82, 60, 36), 1.5)
-    line(img, 16, 20, 14, 22, (82, 60, 36), 1.5)
+    wood_hi, wood, wood_lo = (176, 130, 76), (136, 96, 54), (98, 66, 36)
+    steps(img, (2, 14), (10, 6), wood, wood_lo)
+    steps(img, (3, 13), (11, 5), wood_hi, wood)
+    # head: a blunt face on the lower right, a pointed pick on the upper left
+    poly(img, [(5.5, 2.5), (8, 1.5), (14, 7.5), (13.5, 9.5), (11, 9)], [(196, 196, 206), (150, 150, 162), (104, 104, 118)], 0.2, -0.25, axis=(-1, 1))
+    for x, y in ((6, 3), (7, 3)):
+        put(img, x, y, (226, 226, 234))
+    put(img, 12, 8, (82, 82, 96))
+    put(img, 13, 8, (82, 82, 96))
     return outline(img)
 
 
-def tray(rim, rim_dark, inner):
+def tray(rim, inner, seed):
+    """A shallow pan seen from above and a little from the front: lit rim, dark bowl with grit, a shadow lip underneath."""
+    hi, mid, lo = rim
     img = blank()
-    rng = random.Random(rim[0] + rim[1])
-    ellipse(img, 16, 18, 14, 9, rim_dark, 20, rng, 4)
-    ellipse(img, 16, 16.5, 14, 8.5, rim, 40, rng, 5)
-    ellipse(img, 16, 17.5, 10.5, 5.8, tone(inner, -34), 0, rng, 3)
-    ellipse(img, 16, 18.2, 9.6, 5.0, inner, 18, rng, 7)
-    speckle(img, rng, tone(inner, 30), 14)
-    speckle(img, rng, tone(inner, -30), 14)
-    line(img, 6, 13, 12, 10, tone(rim, 60), 1.0)
+    blob(img, 8, 10, 7, 4.2, [lo, lo, lo], 2, -2)
+    blob(img, 8, 8.7, 7, 4.2, rim, 0.3, -0.25)
+    blob(img, 8.2, 8.9, 4.9, 2.6, [inner[1], inner[1], inner[2]], 2, -0.2)
+    rng = random.Random(seed)
+    for _ in range(6):
+        x, y = rng.randint(5, 11), rng.randint(7, 10)
+        if inside([(3, 9), (8, 5), (13, 9), (8, 12)], x + 0.5, y + 0.5):
+            put(img, x, y, inner[0] if rng.random() < 0.5 else inner[2])
     return outline(img)
 
 
-def bucket(body, body_dark, fill=None):
+def bucket(body, fill=None):
+    hi, mid, lo = body
     img = blank()
-    rng = random.Random(body[0])
-    polygon(img, [(6, 9), (26, 9), (23, 28), (9, 28)], body, 44, rng, 5)
-    for yy, amt in ((13, -24), (22, -24)):
-        for x in range(4, 28):
-            p = img.getpixel((x, yy))
-            if p[3] > 0:
-                put(img, x, yy, tone(p, amt))
-    ellipse(img, 16, 9, 10, 3, tone(body, 18), 14, rng, 3)
-    if fill:
-        ellipse(img, 16, 9.3, 8.4, 2.1, fill, 22, rng, 8)
-    else:
-        ellipse(img, 16, 9.3, 8.4, 2.1, (46, 36, 32), 8, rng, 3)
-    line(img, 7, 8, 5, 3, (96, 90, 84), 1.4)
-    line(img, 5, 3, 27, 3, (96, 90, 84), 1.4)
-    line(img, 27, 3, 25, 8, (96, 90, 84), 1.4)
-    return outline(img)
+    for y in range(4, 14):
+        left = 3 + (y - 4) * 0.2
+        right = 12.99 - (y - 4) * 0.2
+        for x in range(16):
+            if left <= x + 0.5 <= right + 0.5:
+                t = (x + 0.5 - left) / max(0.1, right - left)
+                c = hi if t < 0.22 else (lo if t > 0.78 else mid)
+                if y in (8, 12):
+                    c = lo if t > 0.22 else mid
+                put(img, x, y, c)
+    for x in range(3, 13):
+        put(img, x, 4, hi if x < 8 else mid)
+    inner_dark = (62, 42, 36)
+    top = (inner_dark, darker(inner_dark, 0.75))
+    for x in range(4, 12):
+        put(img, x, 5, fill[0] if fill else top[0])
+    for x in range(5, 11):
+        put(img, x, 6, fill[1] if fill else top[1])
+    outline(img)
+    wire = (92, 72, 58)
+    for x, y in ((4, 3), (4, 2), (5, 1), (6, 1), (7, 1), (8, 1), (9, 1), (10, 1), (11, 2), (11, 3)):
+        put(img, x, y, wire)
+    return img

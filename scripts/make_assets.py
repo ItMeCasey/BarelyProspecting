@@ -74,32 +74,37 @@ def sprite(rows, palette):
 
 OUT = (28, 22, 20)
 
-# ---------------------------------------------------------------- textures (32x32, see draw.py)
+# ---------------------------------------------------------------- textures (16x16, see draw.py)
 import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import draw
 
 
 def block_textures():
-    mats = [('silt', (126, 104, 82), 12, (84, 68, 52), 100), ('grit', (140, 138, 132), 16, (88, 88, 90), 110),
-            ('fine_grit', (198, 190, 166), 9, (226, 218, 196), 120), ('nether_silt', (98, 46, 54), 14, (222, 112, 40), 130),
-            ('end_silt', (208, 208, 152), 8, (124, 80, 172), 140)]
-    for name, base, spread, speck, seed in mats:
-        for wear, img in enumerate(draw.pannable(name, base, spread, speck, seed)):
+    mats = {
+        'silt': ([(146, 122, 96), (126, 104, 82), (108, 88, 68), (84, 68, 52)], [(168, 144, 116), (92, 74, 56)], 100),
+        'grit': ([(164, 162, 156), (142, 140, 134), (120, 118, 114), (92, 92, 96)], [(188, 186, 180), (76, 76, 80)], 110),
+        'fine_grit': ([(222, 214, 190), (206, 198, 172), (188, 180, 154), (160, 152, 128)], [(236, 230, 210), (148, 140, 116)], 120),
+        'nether_silt': ([(126, 60, 66), (102, 48, 56), (80, 38, 46), (58, 28, 36)], [(222, 112, 40), (176, 80, 36)], 130),
+        'end_silt': ([(220, 220, 168), (204, 204, 150), (186, 186, 130), (150, 150, 100)], [(130, 86, 176), (156, 116, 200)], 140),
+    }
+    for name, (pal, speck, seed) in mats.items():
+        for wear, img in enumerate(draw.pannable(pal, speck, seed)):
             save(img, 'textures', 'block', f'{name}_{wear}.png')
     save(draw.rubble(), 'textures', 'block', 'rubble.png')
-    save(draw.planks((142, 100, 58), 5), 'textures', 'block', 'basin_wood.png')
-    save(draw.planks((92, 64, 38), 6, 18), 'textures', 'block', 'basin_inner.png')
-    save(draw.water(8), 'textures', 'block', 'basin_water.png')
+    save(draw.planks([(176, 130, 76), (156, 112, 62), (130, 92, 50), (102, 70, 38)], 5), 'textures', 'block', 'basin_wood.png')
+    save(draw.planks([(116, 82, 46), (98, 68, 38), (80, 54, 30), (58, 38, 20)], 6), 'textures', 'block', 'basin_inner.png')
+    save(draw.water(), 'textures', 'block', 'basin_water.png')
     save(draw.lava(9), 'textures', 'block', 'basin_lava.png')
-    save(draw.clay_pot_side((176, 96, 62), 11), 'textures', 'block', 'crucible_side.png')
-    save(draw.blotchy((50, 42, 40), 8, 12, cell=6, fine=5), 'textures', 'block', 'crucible_inner.png')
+    fired = [(196, 112, 76), (180, 96, 62), (146, 72, 44), (118, 56, 34)]
+    save(draw.clay_side(fired, 11), 'textures', 'block', 'crucible_side.png')
+    save(draw.soot(), 'textures', 'block', 'crucible_inner.png')
     save(draw.lava(13), 'textures', 'block', 'crucible_lava.png')
-    save(draw.blotchy((240, 160, 40), 26, 14, cell=3, fine=12), 'textures', 'block', 'crucible_fire.png')
-    save(draw.clay_pot_side((204, 154, 120), 15), 'textures', 'block', 'unfired_crucible.png')
+    save(draw.fire(), 'textures', 'block', 'crucible_fire.png')
+    save(draw.clay_side([(222, 176, 142), (206, 158, 124), (176, 128, 98), (148, 104, 78)], 15), 'textures', 'block', 'unfired_crucible.png')
     for meals in range(4):
-        save(draw.lure_top(meals, 40 + meals), 'textures', 'block', f'lure_{meals}.png')
-    save(draw.planks((122, 92, 52), 21, 22), 'textures', 'block', 'lure_side.png')
+        save(draw.lure_top(meals), 'textures', 'block', f'lure_{meals}.png')
+    save(draw.planks([(150, 112, 62), (128, 94, 52), (104, 74, 40), (78, 54, 28)], 21), 'textures', 'block', 'lure_side.png')
 
 
 def item_textures():
@@ -108,21 +113,24 @@ def item_textures():
 
     put('twig', draw.twig())
     put('pebble', draw.pebble())
-    put('coal_dust', draw.dust((50, 50, 58)))
-    put('copper_flake', draw.flakes((216, 126, 82)))
-    put('iron_flake', draw.flakes((206, 204, 200)))
-    put('gold_flake', draw.flakes((246, 196, 56)))
+    put('coal_dust', draw.dust([(96, 96, 108), (64, 64, 74), (38, 38, 46)]))
+    put('copper_flake', draw.flakes([(246, 160, 114), (214, 124, 80), (150, 76, 46)]))
+    put('iron_flake', draw.flakes([(238, 238, 240), (196, 196, 202), (130, 130, 140)]))
+    put('gold_flake', draw.flakes([(255, 236, 120), (246, 194, 44), (178, 122, 20)]))
     put('diamond_shard', draw.shard())
     put('pick_hammer', draw.hammer())
-    put('wooden_panning_tray', draw.tray((166, 116, 68), (94, 64, 36), (120, 98, 74)))
-    put('copper_panning_tray', draw.tray((224, 130, 86), (138, 72, 42), (122, 100, 82)))
-    put('iron_panning_tray', draw.tray((216, 216, 218), (112, 112, 120), (124, 116, 108)))
-    put('gold_panning_tray', draw.tray((250, 206, 68), (172, 120, 22), (126, 106, 80)))
-    put('diamond_panning_tray', draw.tray((100, 234, 238), (34, 140, 164), (118, 110, 102)))
-    put('unfired_clay_bucket', draw.bucket((198, 160, 128), (150, 114, 90)))
-    put('clay_bucket', draw.bucket((192, 98, 62), (136, 64, 40)))
-    put('clay_bucket_water', draw.bucket((192, 98, 62), (136, 64, 40), (70, 128, 220)))
-    put('clay_bucket_lava', draw.bucket((192, 98, 62), (136, 64, 40), (252, 150, 30)))
+    inner = [(150, 126, 98), (112, 92, 70), (80, 64, 46)]
+    put('wooden_panning_tray', draw.tray([(192, 144, 86), (154, 110, 60), (106, 72, 38)], inner, 1))
+    put('copper_panning_tray', draw.tray([(242, 152, 106), (202, 110, 68), (142, 70, 42)], inner, 2))
+    put('iron_panning_tray', draw.tray([(238, 238, 240), (192, 192, 198), (122, 122, 132)], inner, 3))
+    put('gold_panning_tray', draw.tray([(255, 232, 112), (246, 190, 40), (176, 120, 20)], inner, 4))
+    put('diamond_panning_tray', draw.tray([(190, 255, 250), (84, 222, 228), (30, 140, 162)], inner, 5))
+    plain = [(214, 182, 150), (190, 154, 122), (150, 116, 90)]
+    clay = [(224, 134, 94), (190, 98, 62), (140, 66, 40)]
+    put('unfired_clay_bucket', draw.bucket(plain))
+    put('clay_bucket', draw.bucket(clay))
+    put('clay_bucket_water', draw.bucket(clay, [(70, 128, 224), (110, 170, 250)]))
+    put('clay_bucket_lava', draw.bucket(clay, [(252, 160, 36), (255, 214, 80)]))
 
 
 # ---------------------------------------------------------------- models
