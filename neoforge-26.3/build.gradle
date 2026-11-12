@@ -131,6 +131,7 @@ dependencies {
     compileOnly "me.shedaniel.cloth:basic-math:0.6.1"
     compileOnly "curse.maven:architectury-api-419699:9111315"
     if (devMods.contains("rei") || devMods.contains("all")) localRuntime "curse.maven:architectury-api-419699:9111315"
+    if (devMods.contains("rei") || devMods.contains("all")) localRuntime "me.shedaniel.cloth:cloth-config-neoforge:26.3.159"
     if (devMods.contains("bei") || devMods.contains("smwti") || devMods.contains("all")) {
         fileTree("devlibs").matching { include "*.jar" }.each { f -> if ((devMods.contains("bei") && f.name.startsWith("bei-")) || (devMods.contains("smwti") && f.name.startsWith("smwti-")) || devMods.contains("all")) { runtimeOnly files(f) } }
     }

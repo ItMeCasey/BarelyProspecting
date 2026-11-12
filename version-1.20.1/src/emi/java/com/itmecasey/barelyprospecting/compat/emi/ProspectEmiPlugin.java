@@ -3,6 +3,7 @@ package com.itmecasey.barelyprospecting.compat.emi;
 import com.itmecasey.barelyprospecting.ProspectMod;
 import com.itmecasey.barelyprospecting.compat.ViewerSupport;
 import com.itmecasey.barelyprospecting.core.ViewerData;
+import dev.emi.emi.api.EmiApi;
 import dev.emi.emi.api.EmiEntrypoint;
 import dev.emi.emi.api.EmiPlugin;
 import dev.emi.emi.api.EmiRegistry;
@@ -34,6 +35,17 @@ public class ProspectEmiPlugin implements EmiPlugin {
         for (ViewerData.Kind kind : ViewerData.Kind.values()) {
             CATEGORIES.put(kind, new KindCategory(kind));
         }
+    }
+
+    /** For the dev tours: opens EMI's recipe screen on the pages of one kind. */
+    public static boolean show(String kindPath) {
+        for (ViewerData.Kind kind : ViewerData.Kind.values()) {
+            if (kind.path().equals(kindPath)) {
+                EmiApi.displayRecipeCategory(CATEGORIES.get(kind));
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

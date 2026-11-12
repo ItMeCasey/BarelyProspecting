@@ -28,7 +28,7 @@ MODS = {
 
 
 ARCH = {'neoforge-26.3': 'architectury-api-419699:9111315', 'neoforge-26.2': 'architectury-api-419699:9111233', 'neoforge-26.1.2': 'architectury-api-419699:9111154', 'neoforge-1.21.1': 'architectury-api-419699:8492726', 'forge-1.20.1': 'architectury-api-419699:5137938'}
-CLOTH = {'neoforge-26.2': 'cloth-config-348521:8269700', 'neoforge-26.1.2': 'cloth-config-348521:7817583', 'neoforge-1.21.1': 'cloth-config-348521:5729127', 'forge-1.20.1': 'cloth-config-348521:5729105'}
+CLOTH = {'neoforge-26.3': 'me.shedaniel.cloth:cloth-config-neoforge:26.3.159', 'neoforge-26.2': 'cloth-config-348521:8269700', 'neoforge-26.1.2': 'cloth-config-348521:7817583', 'neoforge-1.21.1': 'cloth-config-348521:5729127', 'forge-1.20.1': 'cloth-config-348521:5729105'}
 NO_SRC = ('architectury', 'cloth')
 
 
@@ -41,7 +41,7 @@ def block(module):
     runtime = 'modLocalRuntime' if legacy else ('runtimeOnly' if fg6 else 'localRuntime')
 
     def wrap(coord):
-        c = f'"curse.maven:{coord}"'
+        c = f'"{coord}"' if coord.startswith('me.shedaniel') else f'"curse.maven:{coord}"'
         return f'fg.deobf({c})' if fg6 else c
 
     lines = [MARK + ' (BEI, SMWTI, Jade, JEI, REI, EMI): compile-only, loaded by the other mod when it is installed ---',

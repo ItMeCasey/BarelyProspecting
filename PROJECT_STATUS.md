@@ -1,7 +1,7 @@
 # Project Status
 <!-- status-format: 1 -->
 Updated: 2026-11-11
-Summary: Barely Prospecting is built for all ten targets with the full progression, the void-island preset and BEI, JEI, REI, EMI, SMWTI and Jade integrations; the self test passes on all of them and three builds ran a real-client tour.
+Summary: Barely Prospecting is built for all ten targets with the full progression, the void-island preset and BEI, JEI, REI, EMI, SMWTI and Jade integrations; the self test passes on all of them and three builds ran a real-client tour and every viewer was opened in a real client.
 Spend: none
 
 ## Setup
@@ -30,7 +30,7 @@ Spend: none
 - [x] BEI recipe pages (five categories) and SMWTI look-at lines with progress bars on all ten builds; seen in a real client on Forge 26.3 (frames in docs/frames); compile-checked on the other nine (w:3)
 - [x] Jade on NeoForge 26.3, 26.2, 26.1.2, 1.21.1 and both 1.20.1 builds, seen in a real client on NeoForge 26.3; n/a: no Jade build for Forge 26.x or Forge 1.21.1 (w:3)
 - [x] JEI on NeoForge 26.3, 26.2, 26.1.2, both 1.21.1 builds and Forge 1.20.1, all five categories seen in a real client on NeoForge 26.3; n/a: no JEI build for Forge 26.x or NeoForge 1.20.1 (w:3)
-- [~] REI on NeoForge 26.x, NeoForge 1.21.1 and Forge 1.20.1 and EMI on NeoForge 1.21.1 and Forge 1.20.1: written and compile-checked, not opened in a real client; n/a: no REI or EMI build for the other builds (EMI has none for 26.x) (w:3)
+- [x] REI on NeoForge 26.3, 26.2, 26.1.2, NeoForge 1.21.1 and Forge 1.20.1, EMI on NeoForge 1.21.1 and Forge 1.20.1: all five categories opened in real clients with chance tooltips (REI: NeoForge 26.3, NeoForge 1.21.1, Forge 1.20.1; EMI: NeoForge 1.21.1, Forge 1.20.1; frames in docs/frames); 26.2 and 26.1.2 share the 26.3 code and compile; n/a: no REI build for Forge 26.x, Forge 1.21.1 or NeoForge 1.20.1, no EMI build for 26.x, Forge 1.21.1 or NeoForge 1.20.1 (w:3)
 - [x] Dependencies wired for all ten builds (API jars from the ItMeCasey Maven with libs/ fallback, other mods from CurseForge) and the ten new CurseForge files mirrored to the private Maven (w:2)
 
 ## Documentation and listing

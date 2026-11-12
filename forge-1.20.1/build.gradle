@@ -31,6 +31,9 @@ minecraft {
 
     runs {
         configureEach {
+            // Optional mods with Mixin refmaps (Architectury, REI, EMI) ship SRG names; this maps them to the dev names.
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
             workingDirectory project.file('run')
             if (project.hasProperty('devTools')) { property 'barelyprospecting.dev', 'true' }
             property 'forge.logging.markers', 'REGISTRIES'

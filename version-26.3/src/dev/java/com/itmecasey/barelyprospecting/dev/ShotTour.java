@@ -69,6 +69,7 @@ public final class ShotTour {
     private static volatile int snapCrucibleLava;
     private static volatile boolean snapLureIdle;
     private static volatile boolean snapLureSawHatch;
+    private static volatile String snapLureText = "no block entity";
 
     private ShotTour() {
     }
@@ -91,6 +92,7 @@ public final class ShotTour {
                     CrucibleBlockEntity c = crucible();
                     snapCrucibleLava = c == null ? 0 : c.crucible().lava();
                     LureBlockEntity l = lure();
+                    snapLureText = l == null ? "no block entity" : "meals=" + l.lure().meals() + " table=" + l.lure().table() + " left=" + l.lure().ticksLeft();
                     snapLureSawHatch |= l != null && l.lure().isHatching();
                     snapLureIdle = snapLureSawHatch && l != null && !l.lure().isHatching() && l.lure().meals() == 0;
                 });
@@ -154,7 +156,7 @@ public final class ShotTour {
         }
         if (step.ready() != null && !step.ready().getAsBoolean()) {
             if (++held > step.timeout()) {
-                throw new IllegalStateException("a step timed out waiting");
+                throw new IllegalStateException("a step timed out waiting (lure " + snapLureText + ")");
             }
             return;
         }
@@ -185,6 +187,10 @@ public final class ShotTour {
     private static void plan() {
         if ("compat".equals(System.getenv("BARELYPROSPECTING_SHOTS"))) {
             planCompat();
+            return;
+        }
+        if ("viewers".equals(System.getenv("BARELYPROSPECTING_SHOTS"))) {
+            planViewers();
             return;
         }
         then(0, () -> {
@@ -490,6 +496,38 @@ public final class ShotTour {
     }
 
     // ---- helpers ----
+
+    // ---- the viewer tour: opens each recipe viewer that is installed on the five categories ----
+
+    private static void planViewers() {
+        then(0, () -> server("time set noon", "weather clear", "kill @e[type=!player]", "clear @p"));
+        then(40, () -> server("gamemode survival @a"));
+        then(30, () -> Minecraft.getInstance().gui.setScreen(new InventoryScreen(Minecraft.getInstance().player)));
+        shoot("viewer_inventory", 40);
+        for (String category : new String[] {"panning", "hammering", "soaking", "melting", "lure"}) {
+            then(30, () -> viewerShow(category));
+            shoot("viewer_" + category, 30);
+        }
+        then(20, () -> {
+            Minecraft minecraft = Minecraft.getInstance();
+            minecraft.options.pauseOnLostFocus = pauseOnLostFocus;
+            LOGGER.info("PROSPECT-SHOTS DONE");
+            stage = Stage.DONE;
+            minecraft.stop();
+        });
+    }
+
+    /** Asks every viewer plugin of the mod to open its recipe screen on the category; the ones whose viewer is missing are skipped. */
+    private static void viewerShow(String category) {
+        for (String plugin : new String[] {"jei.ProspectJeiPlugin", "rei.ProspectReiPlugin", "emi.ProspectEmiPlugin"}) {
+            try {
+                Object shown = Class.forName("com.itmecasey.barelyprospecting.compat." + plugin).getMethod("show", String.class).invoke(null, category);
+                LOGGER.info("PROSPECT-SHOTS viewer {} {} shown={}", plugin, category, shown);
+            } catch (ReflectiveOperationException | LinkageError e) {
+                LOGGER.info("PROSPECT-SHOTS viewer {} is not available here ({})", plugin, e.getClass().getSimpleName());
+            }
+        }
+    }
 
     private static BasinBlockEntity basin() {
         return Minecraft.getInstance().getSingleplayerServer().overworld().getBlockEntity(at(0, 0, 4)) instanceof BasinBlockEntity b ? b : null;

@@ -23,3 +23,10 @@ s = s.replace('registries -> registries.lookupOrThrow(Registries.WORLD_PRESET).g
               'access -> access.registryOrThrow(Registries.WORLD_PRESET).getHolderOrThrow(preset).value().createWorldDimensions()')
 open('version-1.21.1/src/dev/java/com/itmecasey/barelyprospecting/dev/ShotTour.java', 'w', encoding='utf-8').write(s)
 print('ok')
+# the 1.20.1 tour is the same file with the older world-creation call
+t = open('version-1.21.1/src/dev/java/com/itmecasey/barelyprospecting/dev/ShotTour.java', encoding='utf-8').read()
+t = t.replace('.createWorldDimensions(), new TitleScreen());', '.createWorldDimensions());')
+import os
+os.makedirs('version-1.20.1/src/dev/java/com/itmecasey/barelyprospecting/dev', exist_ok=True)
+open('version-1.20.1/src/dev/java/com/itmecasey/barelyprospecting/dev/ShotTour.java', 'w', encoding='utf-8').write(t)
+print('1.20.1 tour written')

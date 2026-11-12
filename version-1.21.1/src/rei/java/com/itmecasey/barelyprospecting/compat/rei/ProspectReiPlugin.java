@@ -15,6 +15,7 @@ import me.shedaniel.rei.api.client.plugins.REIClientPlugin;
 import me.shedaniel.rei.api.client.registry.category.CategoryRegistry;
 import me.shedaniel.rei.api.client.registry.display.DisplayCategory;
 import me.shedaniel.rei.api.client.registry.display.DisplayRegistry;
+import me.shedaniel.rei.api.client.view.ViewSearchBuilder;
 import me.shedaniel.rei.api.common.category.CategoryIdentifier;
 import me.shedaniel.rei.api.common.display.basic.BasicDisplay;
 import me.shedaniel.rei.api.common.entry.EntryIngredient;
@@ -34,6 +35,16 @@ import net.minecraft.world.item.ItemStack;
 public class ProspectReiPlugin implements REIClientPlugin {
     private static CategoryIdentifier<PageDisplay> id(ViewerData.Kind kind) {
         return CategoryIdentifier.of(ProspectMod.id(kind.path()));
+    }
+
+    /** For the dev tours: opens REI's recipe screen on the pages of one kind. */
+    public static boolean show(String kindPath) {
+        for (ViewerData.Kind kind : ViewerData.Kind.values()) {
+            if (kind.path().equals(kindPath)) {
+                return ViewSearchBuilder.builder().addCategory(id(kind)).open();
+            }
+        }
+        return false;
     }
 
     @Override
