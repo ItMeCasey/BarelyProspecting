@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "wear=0": {
+      "model": "barelyprospecting:block/fine_grit_0"
+    },
+    "wear=1": {
+      "model": "barelyprospecting:block/fine_grit_1"
+    },
+    "wear=2": {
+      "model": "barelyprospecting:block/fine_grit_2"
+    },
+    "wear=3": {
+      "model": "barelyprospecting:block/fine_grit_3"
+    }
+  }
+}

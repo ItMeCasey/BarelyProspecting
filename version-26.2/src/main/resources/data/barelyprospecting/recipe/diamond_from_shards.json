@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "barelyprospecting:diamond_shard",
+    "barelyprospecting:diamond_shard",
+    "barelyprospecting:diamond_shard",
+    "barelyprospecting:diamond_shard"
+  ],
+  "result": {
+    "id": "minecraft:diamond"
+  }
+}

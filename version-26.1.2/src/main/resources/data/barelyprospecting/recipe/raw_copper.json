@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "barelyprospecting:copper_flake",
+    "barelyprospecting:copper_flake",
+    "barelyprospecting:copper_flake",
+    "barelyprospecting:copper_flake"
+  ],
+  "result": {
+    "id": "minecraft:raw_copper"
+  }
+}

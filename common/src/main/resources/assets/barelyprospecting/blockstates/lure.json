@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "meals=0": {
+      "model": "barelyprospecting:block/lure_0"
+    },
+    "meals=1": {
+      "model": "barelyprospecting:block/lure_1"
+    },
+    "meals=2": {
+      "model": "barelyprospecting:block/lure_2"
+    },
+    "meals=3": {
+      "model": "barelyprospecting:block/lure_3"
+    }
+  }
+}

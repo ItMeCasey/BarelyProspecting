@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: How Barely Prospecting works and what it covers
+    url: https://itmecasey.com/wiki/barelyprospecting/
+    about: The progression, every tool and block, the config file and the world preset. Read this first.
+  - name: Troubleshooting
+    url: https://itmecasey.com/wiki/barelyprospecting/?p=faq
+    about: Steps that do not work, missing drops and mixed-mod setups.

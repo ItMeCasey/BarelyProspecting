@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "TFT",
+    "FSF",
+    "TFT"
+  ],
+  "key": {
+    "T": {
+      "item": "barelyprospecting:twig"
+    },
+    "F": {
+      "item": "barelyprospecting:copper_flake"
+    },
+    "S": {
+      "item": "minecraft:wheat_seeds"
+    }
+  },
+  "result": {
+    "id": "barelyprospecting:lure"
+  }
+}

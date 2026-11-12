@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "barelyprospecting:iron_flake"
+    },
+    {
+      "item": "barelyprospecting:iron_flake"
+    },
+    {
+      "item": "barelyprospecting:iron_flake"
+    },
+    {
+      "item": "barelyprospecting:iron_flake"
+    }
+  ],
+  "result": {
+    "item": "minecraft:raw_iron"
+  }
+}

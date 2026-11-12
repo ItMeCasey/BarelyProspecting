@@ -1,0 +1,73 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "barelyprospecting:block/basin"
+      }
+    },
+    {
+      "when": {
+        "water": "1"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/basin_water_1"
+      }
+    },
+    {
+      "when": {
+        "water": "2"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/basin_water_2"
+      }
+    },
+    {
+      "when": {
+        "water": "3"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/basin_water_3"
+      }
+    },
+    {
+      "when": {
+        "water": "4"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/basin_water_4"
+      }
+    },
+    {
+      "when": {
+        "lava": "1"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/basin_lava_1"
+      }
+    },
+    {
+      "when": {
+        "lava": "2"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/basin_lava_2"
+      }
+    },
+    {
+      "when": {
+        "lava": "3"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/basin_lava_3"
+      }
+    },
+    {
+      "when": {
+        "lava": "4"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/basin_lava_4"
+      }
+    }
+  ]
+}

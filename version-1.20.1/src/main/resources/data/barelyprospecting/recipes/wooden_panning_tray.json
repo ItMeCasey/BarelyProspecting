@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    "T T",
+    "PPP"
+  ],
+  "key": {
+    "P": {
+      "item": "barelyprospecting:pebble"
+    },
+    "T": {
+      "item": "barelyprospecting:twig"
+    }
+  },
+  "result": {
+    "item": "barelyprospecting:wooden_panning_tray"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "TP",
+    "PT"
+  ],
+  "key": {
+    "P": {
+      "item": "barelyprospecting:pebble"
+    },
+    "T": {
+      "item": "barelyprospecting:twig"
+    }
+  },
+  "result": {
+    "id": "minecraft:dirt"
+  }
+}

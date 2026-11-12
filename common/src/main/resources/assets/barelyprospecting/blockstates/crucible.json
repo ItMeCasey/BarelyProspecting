@@ -1,0 +1,42 @@
+{
+  "multipart": [
+    {
+      "apply": {
+        "model": "barelyprospecting:block/crucible"
+      }
+    },
+    {
+      "when": {
+        "lit": "true",
+        "lava": "0"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/crucible_fire"
+      }
+    },
+    {
+      "when": {
+        "lava": "1"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/crucible_lava_1"
+      }
+    },
+    {
+      "when": {
+        "lava": "2"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/crucible_lava_2"
+      }
+    },
+    {
+      "when": {
+        "lava": "3"
+      },
+      "apply": {
+        "model": "barelyprospecting:block/crucible_lava_3"
+      }
+    }
+  ]
+}

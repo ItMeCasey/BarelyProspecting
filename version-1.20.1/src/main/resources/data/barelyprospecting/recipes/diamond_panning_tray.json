@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "barelyprospecting:gold_panning_tray"
+    },
+    {
+      "item": "barelyprospecting:diamond_shard"
+    },
+    {
+      "item": "barelyprospecting:diamond_shard"
+    },
+    {
+      "item": "barelyprospecting:diamond_shard"
+    },
+    {
+      "item": "barelyprospecting:diamond_shard"
+    }
+  ],
+  "result": {
+    "item": "barelyprospecting:diamond_panning_tray"
+  }
+}

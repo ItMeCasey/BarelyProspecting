@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "barelyprospecting:gold_flake",
+    "barelyprospecting:gold_flake",
+    "barelyprospecting:gold_flake",
+    "barelyprospecting:gold_flake"
+  ],
+  "result": {
+    "id": "minecraft:raw_gold"
+  }
+}

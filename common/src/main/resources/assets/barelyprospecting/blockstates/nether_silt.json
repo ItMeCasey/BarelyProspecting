@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "wear=0": {
+      "model": "barelyprospecting:block/nether_silt_0"
+    },
+    "wear=1": {
+      "model": "barelyprospecting:block/nether_silt_1"
+    },
+    "wear=2": {
+      "model": "barelyprospecting:block/nether_silt_2"
+    },
+    "wear=3": {
+      "model": "barelyprospecting:block/nether_silt_3"
+    }
+  }
+}

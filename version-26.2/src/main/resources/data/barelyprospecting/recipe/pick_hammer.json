@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "equipment",
+  "pattern": [
+    " PP",
+    " TP",
+    "T  "
+  ],
+  "key": {
+    "P": "barelyprospecting:pebble",
+    "T": "barelyprospecting:twig"
+  },
+  "result": {
+    "id": "barelyprospecting:pick_hammer"
+  }
+}

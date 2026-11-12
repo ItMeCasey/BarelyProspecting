@@ -1,0 +1,25 @@
+{
+  "textures": {
+    "lava": "barelyprospecting:block/crucible_lava",
+    "particle": "barelyprospecting:block/crucible_lava"
+  },
+  "elements": [
+    {
+      "from": [
+        4,
+        2,
+        4
+      ],
+      "to": [
+        12,
+        5,
+        12
+      ],
+      "faces": {
+        "up": {
+          "texture": "#lava"
+        }
+      }
+    }
+  ]
+}

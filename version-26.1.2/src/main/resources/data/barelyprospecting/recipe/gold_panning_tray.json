@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    "barelyprospecting:iron_panning_tray",
+    "barelyprospecting:gold_flake",
+    "barelyprospecting:gold_flake",
+    "barelyprospecting:gold_flake",
+    "barelyprospecting:gold_flake"
+  ],
+  "result": {
+    "id": "barelyprospecting:gold_panning_tray"
+  }
+}

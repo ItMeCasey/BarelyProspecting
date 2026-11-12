@@ -1,0 +1,37 @@
+{
+  "textures": {
+    "fire": "barelyprospecting:block/crucible_fire",
+    "particle": "barelyprospecting:block/crucible_fire"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        2,
+        5
+      ],
+      "to": [
+        11,
+        3.5,
+        11
+      ],
+      "faces": {
+        "up": {
+          "texture": "#fire"
+        },
+        "north": {
+          "texture": "#fire"
+        },
+        "south": {
+          "texture": "#fire"
+        },
+        "west": {
+          "texture": "#fire"
+        },
+        "east": {
+          "texture": "#fire"
+        }
+      }
+    }
+  ]
+}
