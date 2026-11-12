@@ -21,7 +21,7 @@ Spend: none
 
 ## Ports and checks
 - [x] Forge 26.3 and NeoForge 26.3: self test; Forge 26.3 real-client tour with 22 frames (w:4)
-- [x] Forge and NeoForge 26.2 and 26.1.2: self test (71 checks) (w:3)
+- [x] Forge and NeoForge 26.2 and 26.1.2: self test (71 checks, before the last small basin change) (w:3)
 - [x] Forge and NeoForge 1.21.1: self test (72 checks on NeoForge, 71 on Forge before the last small change) (w:3)
 - [x] Forge and NeoForge 1.20.1: self test, jars hold SRG names (verify_jars: 10 ok); not loaded in a real Forge 47.4.28 or NeoForge 47.1.106 install (w:3)
 - [ ] Real-client tour on NeoForge 26.3 and one older build (w:2)
