@@ -315,7 +315,7 @@ public final class ShotTour {
         // 20 to 22: the lure is fed three times by hand, then something answers.
         then(5, () -> server("setblock " + xyz(0, 0, 5) + " minecraft:air", "setblock " + xyz(0, 0, 6) + " barelyprospecting:lure",
                 "tp @p " + (SX + 0.5) + " " + (SY + 1) + " " + (SZ + 0.5) + " 0 0"));
-        then(15, () -> view(0.0, 1.6, 0.0, 0, 0, 6));
+        then(15, () -> view(0.0, 1.6, 2.5, 0, 0, 6));
         then(5, () -> hold(net.minecraft.world.item.Items.WHEAT_SEEDS));
         then(14, () -> useOn(at(0, 0, 6)));
         shoot("20_lure_one_meal", 10);

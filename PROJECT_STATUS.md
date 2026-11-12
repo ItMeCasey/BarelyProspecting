@@ -23,7 +23,7 @@ Spend: none
 - [x] Forge 26.3 and NeoForge 26.3: self test; Forge 26.3 real-client tour with 22 frames (w:4)
 - [x] Forge and NeoForge 26.2 and 26.1.2: self test (71 checks, before the last small basin change) (w:3)
 - [x] Forge and NeoForge 1.21.1: self test (72 checks on NeoForge, 71 on Forge before the last small change) (w:3)
-- [x] Forge and NeoForge 1.20.1: self test, jars hold SRG names (verify_jars: 10 ok); not loaded in a real Forge 47.4.28 or NeoForge 47.1.106 install (w:3)
+- [x] Forge and NeoForge 1.20.1: self test, jars hold SRG names (verify_jars: 10 ok); the jars were loaded in a real Forge 47.4.28 and a real NeoForge 47.1.106 install (our own game folders, real libraries, through launch-isolated.ps1) and ran the whole mechanics tour, 22 frames each (docs/frames/real-forge-47.4.28_*, real-neoforge-47.1.106_*) (w:3)
 - [x] Real-client mechanics tour on NeoForge 26.3 and NeoForge 1.21.1 (22 frames each, DONE) (w:2)
 
 ## Compatibility
