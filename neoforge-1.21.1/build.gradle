@@ -109,6 +109,7 @@ repositories {
         }
     }
     maven { name = 'Cursemaven (fallback)'; url = 'https://cursemaven.com'; content { includeGroup 'curse.maven' } }
+    maven { name = 'Shedaniel'; url = 'https://maven.shedaniel.me'; content { includeGroup 'me.shedaniel.cloth' } }
 }
 configurations {
     localRuntime
@@ -130,6 +131,10 @@ dependencies {
     if (devMods.contains("rei") || devMods.contains("all")) localRuntime "curse.maven:roughly-enough-items-310111:6199140"
     compileOnly "curse.maven:emi-580555:8081408"
     if (devMods.contains("emi") || devMods.contains("all")) localRuntime "curse.maven:emi-580555:8081408"
+    compileOnly "me.shedaniel.cloth:basic-math:0.6.1"
+    compileOnly "curse.maven:architectury-api-419699:8492726"
+    if (devMods.contains("rei") || devMods.contains("all")) localRuntime "curse.maven:architectury-api-419699:8492726"
+    if (devMods.contains("rei") || devMods.contains("all")) localRuntime "curse.maven:cloth-config-348521:5729127"
     if (devMods.contains("bei") || devMods.contains("smwti") || devMods.contains("all")) {
         fileTree("devlibs").matching { include "*.jar" }.each { f -> if ((devMods.contains("bei") && f.name.startsWith("bei-")) || (devMods.contains("smwti") && f.name.startsWith("smwti-")) || devMods.contains("all")) { runtimeOnly files(f) } }
     }

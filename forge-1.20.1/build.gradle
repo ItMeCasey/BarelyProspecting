@@ -134,6 +134,7 @@ repositories {
         }
     }
     maven { name = 'Cursemaven (fallback)'; url = 'https://cursemaven.com'; content { includeGroup 'curse.maven' } }
+    maven { name = 'Shedaniel'; url = 'https://maven.shedaniel.me'; content { includeGroup 'me.shedaniel.cloth' } }
 }
 def devMods = (project.findProperty("devMods") ?: "").toString().split(",").collect { it.trim() }
 dependencies {
@@ -151,6 +152,10 @@ dependencies {
     if (devMods.contains("rei") || devMods.contains("all")) runtimeOnly fg.deobf("curse.maven:roughly-enough-items-310111:5846923")
     compileOnly fg.deobf("curse.maven:emi-580555:8081375")
     if (devMods.contains("emi") || devMods.contains("all")) runtimeOnly fg.deobf("curse.maven:emi-580555:8081375")
+    compileOnly "me.shedaniel.cloth:basic-math:0.6.1"
+    compileOnly fg.deobf("curse.maven:architectury-api-419699:5137938")
+    if (devMods.contains("rei") || devMods.contains("all")) runtimeOnly fg.deobf("curse.maven:architectury-api-419699:5137938")
+    if (devMods.contains("rei") || devMods.contains("all")) runtimeOnly fg.deobf("curse.maven:cloth-config-348521:5729105")
 }
 sourceSets.main.java.srcDir '../version-1.20.1/src/jade/java'
 sourceSets.main.java.srcDir '../version-1.20.1/src/jei/java'

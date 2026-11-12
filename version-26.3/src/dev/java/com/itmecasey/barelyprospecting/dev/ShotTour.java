@@ -383,6 +383,10 @@ public final class ShotTour {
             then(20, () -> LOGGER.info("PROSPECT-SHOTS BEI category {} popup open={}", category, beiPopupOpen()));
             shoot("bei_category_" + category, 10);
         }
+        for (String category : new String[] {"panning", "hammering", "soaking", "melting", "lure"}) {
+            then(30, () -> jeiShow(category));
+            shoot("jei_category_" + category, 20);
+        }
         then(20, () -> {
             Minecraft minecraft = Minecraft.getInstance();
             minecraft.options.pauseOnLostFocus = pauseOnLostFocus;
@@ -403,6 +407,15 @@ public final class ShotTour {
             ((net.minecraft.client.gui.components.EditBox) beiField("box")).setValue(text);
         } catch (ReflectiveOperationException e) {
             LOGGER.warn("PROSPECT-SHOTS could not reach the BEI search box", e);
+        }
+    }
+
+    private static void jeiShow(String category) {
+        try {
+            Object shown = Class.forName("com.itmecasey.barelyprospecting.compat.jei.ProspectJeiPlugin").getMethod("show", String.class).invoke(null, category);
+            LOGGER.info("PROSPECT-SHOTS JEI {} shown={}", category, shown);
+        } catch (ReflectiveOperationException e) {
+            LOGGER.warn("PROSPECT-SHOTS JEI is not installed here", e);
         }
     }
 

@@ -32,7 +32,7 @@ Five trays: wooden, copper, iron, gold and diamond. Each is the last one plus fo
 
 ![Compatibility](https://raw.githubusercontent.com/ItMeCasey/BarelyProspecting/main/branding/banners/h_compat.png)
 
-Needs no other mod. Recipe viewer pages (BEI, REI, JEI, EMI) and in-world info (SMWTI, Jade) are planned and not in this release.
+Needs no other mod. Optional extras: panning, hammering, soaking, melting and lure pages in **BEI, JEI, REI and EMI**, and look-at info on basins, crucibles, lures and silt in **SMWTI and Jade**, on every build where that mod exists. The wiki lists which.
 
 ![FAQ](https://raw.githubusercontent.com/ItMeCasey/BarelyProspecting/main/branding/banners/h_faq.png)
 

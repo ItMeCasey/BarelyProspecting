@@ -112,6 +112,7 @@ repositories {
         }
     }
     maven { name = 'Cursemaven (fallback)'; url = 'https://cursemaven.com'; content { includeGroup 'curse.maven' } }
+    maven { name = 'Shedaniel'; url = 'https://maven.shedaniel.me'; content { includeGroup 'me.shedaniel.cloth' } }
 }
 configurations {
     localRuntime

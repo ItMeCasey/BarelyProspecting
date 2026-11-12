@@ -27,6 +27,11 @@ MODS = {
 }
 
 
+ARCH = {'neoforge-26.3': 'architectury-api-419699:9111315', 'neoforge-26.2': 'architectury-api-419699:9111233', 'neoforge-26.1.2': 'architectury-api-419699:9111154', 'neoforge-1.21.1': 'architectury-api-419699:8492726', 'forge-1.20.1': 'architectury-api-419699:5137938'}
+CLOTH = {'neoforge-26.2': 'cloth-config-348521:8269700', 'neoforge-26.1.2': 'cloth-config-348521:7817583', 'neoforge-1.21.1': 'cloth-config-348521:5729127', 'forge-1.20.1': 'cloth-config-348521:5729105'}
+NO_SRC = ('architectury', 'cloth')
+
+
 def block(module):
     loader, mc = module.split('-', 1)
     smwti = SMWTI.get(mc, '2026.11.2')
@@ -51,6 +56,7 @@ def block(module):
              '        }',
              '    }',
              "    maven { name = 'Cursemaven (fallback)'; url = 'https://cursemaven.com'; content { includeGroup 'curse.maven' } }",
+             "    maven { name = 'Shedaniel'; url = 'https://maven.shedaniel.me'; content { includeGroup 'me.shedaniel.cloth' } }",
              '}']
     if not fg6 and not legacy:
         lines += ['configurations {', '    localRuntime', '    runtimeClasspath.extendsFrom localRuntime', '}']
@@ -65,12 +71,21 @@ def block(module):
     for key, coord in MODS[module].items():
         lines.append(f'    {compile_only} {wrap(coord)}')
         lines.append(f'    if (devMods.contains("{key}") || devMods.contains("all")) {runtime} {wrap(coord)}')
+    if 'rei' in MODS[module]:
+        lines.append('    compileOnly "me.shedaniel.cloth:basic-math:0.6.1"')
+        for name, table in (('architectury', ARCH), ('cloth', CLOTH)):
+            if module in table:
+                if name == 'architectury':
+                    lines.append(f'    {compile_only} {wrap(table[module])}')
+                lines.append(f'    if (devMods.contains("rei") || devMods.contains("all")) {runtime} {wrap(table[module])}')
     if not fg6 and not legacy:
         lines.append('    if (devMods.contains("bei") || devMods.contains("smwti") || devMods.contains("all")) {')
         lines.append('        fileTree("devlibs").matching { include "*.jar" }.each { f -> if ((devMods.contains("bei") && f.name.startsWith("bei-")) || (devMods.contains("smwti") && f.name.startsWith("smwti-")) || devMods.contains("all")) { runtimeOnly files(f) } }')
         lines.append('    }')
     lines.append('}')
     for key in MODS[module]:
+        if key in NO_SRC:
+            continue
         lines.append(f"sourceSets.main.java.srcDir '../version-{mc}/src/{key}/java'")
     return '\n'.join(lines) + '\n'
 
