@@ -13,7 +13,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.level.BlockEvent;
+import net.neoforged.neoforge.event.level.block.BreakBlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
@@ -22,10 +22,10 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 public final class BarelyProspectingNeoForge {
     public BarelyProspectingNeoForge(IEventBus modBus, ModContainer container) {
         Settings.install(new NeoForgeSettings());
-        container.registerConfig(ModConfig.Type.COMMON, NeoForgeSettings.SPEC, "barelyprospecting-common.toml");
+        container.registerConfig(ModConfig.Type.LOCAL, NeoForgeSettings.SPEC, "barelyprospecting-common.toml");
         modBus.addListener(BarelyProspectingNeoForge::register);
 
-        NeoForge.EVENT_BUS.addListener((BlockEvent.BreakEvent event) -> {
+        NeoForge.EVENT_BUS.addListener((BreakBlockEvent event) -> {
             if (event.getPlayer() instanceof ServerPlayer player && event.getLevel() instanceof ServerLevel level) {
                 HandDrops.onBlockBroken(player, level, event.getPos(), event.getState());
             }

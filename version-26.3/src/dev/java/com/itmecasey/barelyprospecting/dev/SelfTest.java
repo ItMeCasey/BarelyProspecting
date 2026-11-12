@@ -361,6 +361,8 @@ public final class SelfTest {
         steve.setItemInHand(hand(), silt);
         level.getBlockState(p).useItemOn(silt, level, steve, hand(), hit(p));
         check("silt starts soaking and is used up one at a time", be.basin().isSoaking() && silt.getCount() == 3);
+        check("the basin keeps the same block entity when its look changes", level.getBlockEntity(p) == be);
+        check("the basin block has a ticker for its block entity", level.getBlockState(p).getTicker(level, ModContent.BASIN_BE) != null);
         for (int i = 0; i < 400; i++) {
             BasinBlockEntity.serverTick(level, p, level.getBlockState(p), be);
         }

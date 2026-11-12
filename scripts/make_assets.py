@@ -74,300 +74,55 @@ def sprite(rows, palette):
 
 OUT = (28, 22, 20)
 
-# ---------------------------------------------------------------- block textures
-SILT = (126, 104, 82)
-GRIT = (140, 138, 132)
-FINE = (196, 188, 164)
-NETHER = (96, 46, 52)
-END = (206, 206, 150)
-RUBBLE = (118, 116, 122)
+# ---------------------------------------------------------------- textures (32x32, see draw.py)
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import draw
 
 
-def pannable_textures():
-    for i, (name, base, spread, speck, every) in enumerate([
-            ('silt', SILT, 12, (90, 74, 58), 6),
-            ('grit', GRIT, 18, (96, 94, 92), 5),
-            ('fine_grit', FINE, 9, (222, 214, 190), 4),
-            ('nether_silt', NETHER, 14, (214, 110, 40), 9),
-            ('end_silt', END, 8, (120, 76, 168), 8)]):
-        for wear in range(4):
-            img = noisy(base, spread, 100 + i * 10, speck, every)
-            pits(img, wear * 4, 200 + i, 38)
+def block_textures():
+    mats = [('silt', (126, 104, 82), 12, (84, 68, 52), 100), ('grit', (140, 138, 132), 16, (88, 88, 90), 110),
+            ('fine_grit', (198, 190, 166), 9, (226, 218, 196), 120), ('nether_silt', (98, 46, 54), 14, (222, 112, 40), 130),
+            ('end_silt', (208, 208, 152), 8, (124, 80, 172), 140)]
+    for name, base, spread, speck, seed in mats:
+        for wear, img in enumerate(draw.pannable(name, base, spread, speck, seed)):
             save(img, 'textures', 'block', f'{name}_{wear}.png')
-
-
-def rubble_texture():
-    rng = random.Random(33)
-    img = noisy(RUBBLE, 14, 33)
-    # angular chips: a few lighter and darker blocks
-    for _ in range(9):
-        x, y, w, h = rng.randint(0, 12), rng.randint(0, 12), rng.randint(2, 4), rng.randint(2, 3)
-        tone = rng.choice([-26, 22, 12, -14])
-        for yy in range(y, min(16, y + h)):
-            for xx in range(x, min(16, x + w)):
-                r, g, b, a = img.getpixel((xx, yy))
-                img.putpixel((xx, yy), shade((r, g, b), tone))
-    save(img, 'textures', 'block', 'rubble.png')
-
-
-def planks(base, seed):
-    img = Image.new('RGBA', (16, 16))
-    rng = random.Random(seed)
-    for y in range(16):
-        for x in range(16):
-            n = rng.randint(-8, 8)
-            if y % 4 == 3:
-                n -= 26
-            img.putpixel((x, y), shade(base, n))
-    return img
-
-
-def basin_textures():
-    save(planks((140, 98, 58), 5), 'textures', 'block', 'basin_wood.png')
-    inner = planks((96, 66, 40), 6)
-    save(inner, 'textures', 'block', 'basin_inner.png')
-    water = noisy((58, 110, 196), 10, 8, (130, 180, 240), 9)
-    save(water, 'textures', 'block', 'basin_water.png')
-    lava = noisy((230, 110, 24), 22, 9, (255, 214, 80), 6)
-    save(lava, 'textures', 'block', 'basin_lava.png')
-
-
-def crucible_textures():
-    clay = (178, 98, 62)
-    side = noisy(clay, 8, 11)
-    for y in (4, 5, 11):
-        for x in range(16):
-            r, g, b, a = side.getpixel((x, y))
-            side.putpixel((x, y), shade((r, g, b), -34))
-    save(side, 'textures', 'block', 'crucible_side.png')
-    save(noisy((52, 44, 42), 7, 12), 'textures', 'block', 'crucible_inner.png')
-    save(noisy((236, 120, 30), 24, 13, (255, 220, 90), 5), 'textures', 'block', 'crucible_lava.png')
-    fire = noisy((238, 160, 40), 20, 14, (255, 240, 130), 3)
-    save(fire, 'textures', 'block', 'crucible_fire.png')
-    soft = noisy((200, 150, 116), 8, 15)
-    for y in (4, 5, 11):
-        for x in range(16):
-            r, g, b, a = soft.getpixel((x, y))
-            soft.putpixel((x, y), shade((r, g, b), -22))
-    save(soft, 'textures', 'block', 'unfired_crucible.png')
-
-
-def lure_textures():
-    nest = (122, 92, 52)
-    seeds = [(226, 204, 120), (210, 184, 96), (236, 220, 150)]
+    save(draw.rubble(), 'textures', 'block', 'rubble.png')
+    save(draw.planks((142, 100, 58), 5), 'textures', 'block', 'basin_wood.png')
+    save(draw.planks((92, 64, 38), 6, 18), 'textures', 'block', 'basin_inner.png')
+    save(draw.water(8), 'textures', 'block', 'basin_water.png')
+    save(draw.lava(9), 'textures', 'block', 'basin_lava.png')
+    save(draw.clay_pot_side((176, 96, 62), 11), 'textures', 'block', 'crucible_side.png')
+    save(draw.blotchy((50, 42, 40), 8, 12, cell=6, fine=5), 'textures', 'block', 'crucible_inner.png')
+    save(draw.lava(13), 'textures', 'block', 'crucible_lava.png')
+    save(draw.blotchy((240, 160, 40), 26, 14, cell=3, fine=12), 'textures', 'block', 'crucible_fire.png')
+    save(draw.clay_pot_side((204, 154, 120), 15), 'textures', 'block', 'unfired_crucible.png')
     for meals in range(4):
-        img = noisy(nest, 14, 20)
-        # a ring of twigs around a hollow
-        for y in range(16):
-            for x in range(16):
-                d = (x - 7.5) ** 2 + (y - 7.5) ** 2
-                if d < 22:
-                    img.putpixel((x, y), shade((70, 52, 30), 0))
-        rng = random.Random(40 + meals)
-        for _ in range(meals * 5):
-            x, y = rng.randint(4, 11), rng.randint(4, 11)
-            img.putpixel((x, y), rng.choice(seeds) + (255,))
-        save(img, 'textures', 'block', f'lure_{meals}.png')
-    save(noisy(nest, 14, 21), 'textures', 'block', 'lure_side.png')
-
-
-# ---------------------------------------------------------------- item textures
-def twig():
-    return sprite([
-        '................',
-        '..............g.',
-        '.............gG.',
-        '............b...',
-        '...........b.G..',
-        '..........b.....',
-        '.....g...b......',
-        '....gG..b.......',
-        '.....b.b........',
-        '......bb........',
-        '.....bb.........',
-        '....b.b.........',
-        '...b............',
-        '..d.............',
-        '................',
-        '................'],
-        {'b': (122, 88, 52), 'd': (84, 58, 34), 'g': (96, 150, 60), 'G': (70, 116, 44)})
-
-
-def pebble():
-    return sprite([
-        '................',
-        '................',
-        '................',
-        '................',
-        '.....ssss.......',
-        '....sSSSSs......',
-        '....sSSSSsss....',
-        '.....ssssSSSs...',
-        '..sss...sSSSs...',
-        '.sSSSs...sss....',
-        '.sSSSSs.........',
-        '..sssss.........',
-        '................',
-        '................',
-        '................',
-        '................'],
-        {'s': (96, 96, 102), 'S': (150, 150, 156)})
-
-
-def dust(base, light, dark):
-    return sprite([
-        '................',
-        '................',
-        '................',
-        '................',
-        '................',
-        '......dd........',
-        '.....dllld......',
-        '....dllbllld....',
-        '...dllbbbblld...',
-        '..dlbbbbbbblld..',
-        '..dbbbbbbbbbbd..',
-        '...dddddddddd...',
-        '................',
-        '................',
-        '................',
-        '................'],
-        {'b': base, 'l': light, 'd': dark})
-
-
-def chips(base, light, dark):
-    return sprite([
-        '................',
-        '................',
-        '................',
-        '.......ll.......',
-        '......lbbd......',
-        '.....lbbbbd.....',
-        '......dbbd..ll..',
-        '.............d..',
-        '..lb............',
-        '.lbbd.......ll..',
-        '..dd.......lbbd.',
-        '............dd..',
-        '................',
-        '................',
-        '................',
-        '................'],
-        {'b': base, 'l': light, 'd': dark})
-
-
-def shard():
-    return sprite([
-        '................',
-        '................',
-        '.........l......',
-        '........lcc.....',
-        '.......lccC.....',
-        '......lcccCd....',
-        '.....lcccCd.....',
-        '....lcccCd......',
-        '...lccCCd.......',
-        '..lcCCd.........',
-        '..lCd...........',
-        '..d.............',
-        '................',
-        '................',
-        '................',
-        '................'],
-        {'c': (92, 226, 232), 'C': (44, 168, 190), 'l': (210, 255, 255), 'd': (20, 100, 124)})
-
-
-def hammer():
-    return sprite([
-        '................',
-        '................',
-        '...hhhhhhh......',
-        '..hHHHHHHHh.....',
-        '..hHSSSSSHhd....',
-        '..hHHHHHHHhwd...',
-        '...hhhhhhh.wd...',
-        '............wd..',
-        '.............wd.',
-        '..............wd',
-        '...............w',
-        '................',
-        '................',
-        '................',
-        '................',
-        '................'],
-        {'h': (70, 70, 78), 'H': (130, 130, 140), 'S': (170, 170, 180), 'w': (130, 92, 54), 'd': (88, 62, 36)})
-
-
-def tray(rim, rim_dark, inner):
-    return sprite([
-        '................',
-        '................',
-        '................',
-        '................',
-        '....rrrrrrrr....',
-        '..rrRRRRRRRRrr..',
-        '.rRRiiiiiiiiRRr.',
-        '.rRiiiiiiiiiiRr.',
-        '.rRiiiiiiiiiiRr.',
-        '.rRiiiiiiiiiiRr.',
-        '..rRRiiiiiiRRr..',
-        '...rrRRRRRRrr...',
-        '....dddddddd....',
-        '................',
-        '................',
-        '................'],
-        {'r': rim_dark, 'R': rim, 'i': inner, 'd': (40, 34, 32)})
-
-
-def bucket(body, body_dark, fill=None, fill_dark=None):
-    rows = [
-        '................',
-        '................',
-        '....h......h....',
-        '...h.hhhhhh.h...',
-        '...h.fFFFFf.h...',
-        '....bfFFFFfb....',
-        '....bbbbbbbb....',
-        '....bBbbbbBb....',
-        '....bBbbbbBb....',
-        '.....bBbbBb.....',
-        '.....bBbbBb.....',
-        '.....dddddd.....',
-        '................',
-        '................',
-        '................',
-        '................']
-    palette = {'b': body, 'B': body_dark, 'd': tuple(max(0, c - 70) for c in body_dark), 'h': (90, 84, 78)}
-    if fill:
-        palette['f'] = fill_dark
-        palette['F'] = fill
-    else:
-        palette['f'] = (40, 32, 30)
-        palette['F'] = (58, 48, 44)
-    return sprite(rows, palette)
+        save(draw.lure_top(meals, 40 + meals), 'textures', 'block', f'lure_{meals}.png')
+    save(draw.planks((122, 92, 52), 21, 22), 'textures', 'block', 'lure_side.png')
 
 
 def item_textures():
     def put(name, img):
         save(img, 'textures', 'item', name + '.png')
 
-    put('twig', twig())
-    put('pebble', pebble())
-    put('coal_dust', dust((46, 46, 52), (88, 88, 98), (22, 22, 26)))
-    put('copper_flake', chips((214, 126, 82), (248, 178, 130), (140, 74, 44)))
-    put('iron_flake', chips((206, 204, 200), (240, 240, 236), (120, 120, 126)))
-    put('gold_flake', chips((246, 196, 56), (255, 238, 140), (176, 124, 24)))
-    put('diamond_shard', shard())
-    put('pick_hammer', hammer())
-    put('wooden_panning_tray', tray((160, 112, 66), (96, 66, 38), (112, 92, 70)))
-    put('copper_panning_tray', tray((220, 128, 84), (140, 74, 44), (118, 96, 80)))
-    put('iron_panning_tray', tray((214, 214, 214), (116, 116, 122), (120, 112, 104)))
-    put('gold_panning_tray', tray((248, 204, 66), (176, 124, 24), (122, 102, 78)))
-    put('diamond_panning_tray', tray((98, 232, 236), (36, 142, 164), (116, 108, 100)))
-    put('unfired_clay_bucket', bucket((196, 160, 130), (150, 114, 90)))
-    put('clay_bucket', bucket((190, 98, 64), (136, 64, 40)))
-    put('clay_bucket_water', bucket((190, 98, 64), (136, 64, 40), (74, 128, 214), (48, 92, 172)))
-    put('clay_bucket_lava', bucket((190, 98, 64), (136, 64, 40), (250, 140, 30), (210, 80, 20)))
+    put('twig', draw.twig())
+    put('pebble', draw.pebble())
+    put('coal_dust', draw.dust((50, 50, 58)))
+    put('copper_flake', draw.flakes((216, 126, 82)))
+    put('iron_flake', draw.flakes((206, 204, 200)))
+    put('gold_flake', draw.flakes((246, 196, 56)))
+    put('diamond_shard', draw.shard())
+    put('pick_hammer', draw.hammer())
+    put('wooden_panning_tray', draw.tray((166, 116, 68), (94, 64, 36), (120, 98, 74)))
+    put('copper_panning_tray', draw.tray((224, 130, 86), (138, 72, 42), (122, 100, 82)))
+    put('iron_panning_tray', draw.tray((216, 216, 218), (112, 112, 120), (124, 116, 108)))
+    put('gold_panning_tray', draw.tray((250, 206, 68), (172, 120, 22), (126, 106, 80)))
+    put('diamond_panning_tray', draw.tray((100, 234, 238), (34, 140, 164), (118, 110, 102)))
+    put('unfired_clay_bucket', draw.bucket((198, 160, 128), (150, 114, 90)))
+    put('clay_bucket', draw.bucket((192, 98, 62), (136, 64, 40)))
+    put('clay_bucket_water', draw.bucket((192, 98, 62), (136, 64, 40), (70, 128, 220)))
+    put('clay_bucket_lava', draw.bucket((192, 98, 62), (136, 64, 40), (252, 150, 30)))
 
 
 # ---------------------------------------------------------------- models
@@ -666,11 +421,7 @@ def write_version(version):
 
 
 def main():
-    pannable_textures()
-    rubble_texture()
-    basin_textures()
-    crucible_textures()
-    lure_textures()
+    block_textures()
     item_textures()
     simple_block_models()
     basin_models()

@@ -37,7 +37,8 @@ public final class StarterIsland {
     /** True when the overworld generator is a flat world with no solid layer (the void preset). */
     public static boolean isVoidWorld(ServerLevel overworld) {
         if (overworld.getChunkSource().getGenerator() instanceof FlatLevelSource flat) {
-            return flat.settings().getLayers().stream().allMatch(BlockState::isAir);
+            // The game keeps a null for a layer it treats as empty, so a null counts as air too.
+            return flat.settings().getLayers().stream().allMatch(state -> state == null || state.isAir());
         }
         return false;
     }

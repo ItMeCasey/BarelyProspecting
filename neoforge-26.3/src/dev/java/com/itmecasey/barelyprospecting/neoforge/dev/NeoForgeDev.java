@@ -1,10 +1,14 @@
 package com.itmecasey.barelyprospecting.neoforge.dev;
 
 import com.itmecasey.barelyprospecting.dev.SelfTest;
+import com.itmecasey.barelyprospecting.dev.ShotTour;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 
-/** Development hooks for NeoForge: the server self test. Built only with -PdevTools. */
+/** Development hooks for NeoForge: the server self test and the client screenshot tour. Built only with -PdevTools. */
 public final class NeoForgeDev {
     private NeoForgeDev() {
     }
@@ -15,6 +19,9 @@ public final class NeoForgeDev {
                 SelfTest.run(e.getServer());
                 e.getServer().halt(false);
             });
+        }
+        if (FMLEnvironment.getDist() == Dist.CLIENT && System.getenv("BARELYPROSPECTING_SHOTS") != null) {
+            NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> ShotTour.tick());
         }
     }
 }
