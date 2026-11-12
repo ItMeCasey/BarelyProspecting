@@ -1,8 +1,8 @@
 # Changelog
 
-## Unreleased
+## 2026.11.2
 
-All textures redrawn at 16x16 in the style of the game's own: small flat palettes, hand-placed highlight and shadow, a dark outline on items, no gradients. Touches every build (the textures are in all ten jars); not released yet.
+All textures redrawn at 16x16 in the style of the game's own: small flat palettes, hand-placed highlight and shadow, a dark outline on items, no gradients. Touches every build (the textures are in all ten jars).
 
 ## 2026.11.1
 
