@@ -357,6 +357,12 @@ public final class SelfTest {
         level.getBlockState(p).useItemOn(bucket, level, steve, hand(), hit(p));
         check("a clay bucket of water fills the basin", be.basin().levels() == 4 && level.getBlockState(p).getValue(BasinBlock.WATER) == 4);
         check("the bucket comes back empty", steve.getItemInHand(hand()).is(ModContent.CLAY_BUCKET));
+        // A vanilla bucket of water fills it too, and comes back as an empty bucket.
+        be.basin().drain();
+        ItemStack vanilla = new ItemStack(Items.WATER_BUCKET);
+        steve.setItemInHand(hand(), vanilla);
+        level.getBlockState(p).useItemOn(vanilla, level, steve, hand(), hit(p));
+        check("a vanilla bucket of water fills the basin", be.basin().levels() == 4 && steve.getItemInHand(hand()).is(Items.BUCKET));
         // Soak silt.
         steve.setItemInHand(hand(), silt);
         level.getBlockState(p).useItemOn(silt, level, steve, hand(), hit(p));

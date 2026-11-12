@@ -106,6 +106,22 @@ public class BasinBlock extends BaseEntityBlock {
             return ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
         }
         BasinState basin = be.basin();
+        if (stack.is(net.minecraft.world.item.Items.WATER_BUCKET) || stack.is(net.minecraft.world.item.Items.LAVA_BUCKET)) {
+            if (level.isClientSide()) {
+                return ItemInteractionResult.SUCCESS;
+            }
+            boolean lava = stack.is(net.minecraft.world.item.Items.LAVA_BUCKET);
+            if (basin.fill(lava ? Recipes.Fluid.LAVA : Recipes.Fluid.WATER, BasinState.CAPACITY) > 0) {
+                be.changed();
+                level.playSound(null, pos, lava ? SoundEvents.BUCKET_EMPTY_LAVA : SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 0.8F, 1.0F);
+                if (!player.getAbilities().instabuild) {
+                    player.setItemInHand(hand, new ItemStack(net.minecraft.world.item.Items.BUCKET));
+                }
+            } else {
+                Compat.bar(player, "message.barelyprospecting.basin_full");
+            }
+            return ItemInteractionResult.SUCCESS;
+        }
         if (stack.getItem() instanceof ClayBucketItem bucket) {
             return level.isClientSide() ? ItemInteractionResult.SUCCESS : useBucket(bucket, be, basin, player, hand, level, pos);
         }
