@@ -393,6 +393,8 @@ def recipes(f):
     shaped('pick_hammer', [' PP', ' TP', 'T  '], {'P': m('pebble'), 'T': m('twig')}, m('pick_hammer'), category='equipment')
     shaped('wooden_panning_tray', ['T T', 'PPP'], {'P': m('pebble'), 'T': m('twig')}, m('wooden_panning_tray'), category='equipment')
     shaped('turf', ['TP', 'PT'], {'P': m('pebble'), 'T': m('twig')}, v('dirt'))
+    shaped('cobblestone_from_rubble', ['RR', 'RR'], {'R': m('rubble')}, v('cobblestone'))
+    shaped('gravel_from_grit', ['GG', 'GG'], {'G': m('grit')}, v('gravel'))
     shaped('basin', ['P P', 'PPP'], {'P': '#minecraft:planks'}, m('basin'))
     shaped('unfired_clay_bucket', ['C C', 'C C', ' C '], {'C': v('clay_ball')}, m('unfired_clay_bucket'))
     shaped('unfired_crucible', ['C C', 'C C', 'CCC'], {'C': v('clay_ball')}, m('unfired_crucible'))

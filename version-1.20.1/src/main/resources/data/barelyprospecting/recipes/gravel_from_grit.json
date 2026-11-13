@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GG",
+    "GG"
+  ],
+  "key": {
+    "G": {
+      "item": "barelyprospecting:grit"
+    }
+  },
+  "result": {
+    "item": "minecraft:gravel"
+  }
+}

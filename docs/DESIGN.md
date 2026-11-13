@@ -19,7 +19,7 @@ The design is in `SPEC.md`. This note is the build plan and the shape of the cod
 |---|---|---|
 | 0 | Break leaves or dirt bare-handed: twig, pebble | `HandDrops` (loader forwards the break event) |
 | 0 | Craft pick-hammer, wooden panning tray, turf (twigs and pebbles to dirt) | recipes |
-| 0/1 | Hammer: dirt to silt, stone to rubble, rubble to grit, grit to fine grit, fine grit to sand | `HammerItem`, `Recipes.crush` |
+| 0/1 | Hammer: dirt to silt, stone to rubble, rubble to grit, grit to fine grit, fine grit to sand; crafting 2x2 rubble gives cobblestone and 2x2 grit gives gravel | `HammerItem`, `Recipes.crush` |
 | 1 | Hold the tray on silt, grit or fine grit; a ring of sparks closes; the table is rolled | `TrayItem`, `Pan`, `DropTables` |
 | 2 | Basin: filled by clay bucket or rain, one item soaks, an empty hand takes the result (silt to clay) | `BasinBlock`, `BasinState` |
 | 2 | Clay to unfired bucket and crucible, fired on a campfire or in a furnace | recipes (campfire cooking) |

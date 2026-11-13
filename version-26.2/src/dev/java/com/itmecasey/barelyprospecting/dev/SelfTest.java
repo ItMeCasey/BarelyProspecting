@@ -500,7 +500,7 @@ public final class SelfTest {
     private static void data() {
         List<String> recipes = List.of("pick_hammer", "wooden_panning_tray", "turf", "basin", "unfired_clay_bucket", "unfired_crucible",
                 "clay_bucket_campfire", "crucible_campfire", "copper_panning_tray", "iron_panning_tray", "gold_panning_tray",
-                "diamond_panning_tray", "raw_copper", "raw_iron", "raw_gold", "diamond_from_shards", "lure", "end_portal_frame");
+                "diamond_panning_tray", "raw_copper", "raw_iron", "raw_gold", "diamond_from_shards", "lure", "end_portal_frame", "cobblestone_from_rubble", "gravel_from_grit");
         int missing = 0;
         for (String name : recipes) {
             if (server.getResourceManager().getResourceStack(ProspectMod.id("recipe/" + name + ".json")).isEmpty()) {

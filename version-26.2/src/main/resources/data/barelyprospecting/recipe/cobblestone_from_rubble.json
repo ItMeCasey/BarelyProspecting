@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RR",
+    "RR"
+  ],
+  "key": {
+    "R": "barelyprospecting:rubble"
+  },
+  "result": {
+    "id": "minecraft:cobblestone"
+  }
+}
