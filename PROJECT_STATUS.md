@@ -1,6 +1,6 @@
 # Project Status
 <!-- status-format: 1 -->
-Updated: 2026-11-12
+Updated: 2026-11-13
 Summary: Barely Prospecting is built for all ten targets with the full progression, the void-island preset and BEI, JEI, REI, EMI, SMWTI and Jade integrations; the self test passes on all of them and three builds ran a real-client tour and every viewer was opened in a real client.
 Spend: none
 
@@ -10,6 +10,7 @@ Spend: none
 
 ## Build
 - [x] Ten Gradle modules (Forge and NeoForge for 26.3, 26.2, 26.1.2, 1.21.1, 1.20.1), version 2026.11.1, CI workflows, issue templates, publish script with PROJECT_ID 0 (w:3)
+- [~] CI builds and releases only the versions that changed (plan job and tested path rules written and committed; not yet seen running on GitHub) (w:1)
 - [x] Shared Minecraft-free core with unit tests: drop tables, tiers, hammer chain, basin, crucible and lure state machines, ring math (16 tests pass in the reference builds) (w:4)
 - [x] Phases 0 and 1: bare-hand twigs and pebbles, pick-hammer chain, panning ring and tray, silt, rubble, grit, fine grit with four wear stages (self test; frames on Forge 26.3) (w:4)
 - [x] Phase 2: soaking basin (vanilla or clay bucket, rain), clay, crucible with fuel, lava, stone and obsidian (self test; frames on Forge 26.3) (w:4)
