@@ -1,5 +1,6 @@
 package com.itmecasey.barelyprospecting.item;
 
+import com.itmecasey.barelyprospecting.core.script.ScriptEvents;
 import com.itmecasey.barelyprospecting.ProspectMod;
 import com.itmecasey.barelyprospecting.core.Recipes;
 import net.minecraft.core.BlockPos;
@@ -39,6 +40,8 @@ public class HammerItem extends Item {
             return InteractionResult.SUCCESS;
         }
         level.setBlock(pos, target.defaultBlockState(), Block.UPDATE_ALL);
+        ScriptEvents.fire("hammered", context.getPlayer() == null ? "" : context.getPlayer().getName().getString(), com.itmecasey.barelyprospecting.server.Compat.dimensionId(level),
+                pos.getX(), pos.getY(), pos.getZ(), ProspectMod.idOf(state.getBlock()), to, 1, "", null);
         level.playSound(null, pos, SoundEvents.STONE_BREAK, SoundSource.BLOCKS, 0.7F, 0.8F + level.getRandom().nextFloat() * 0.4F);
         if (level instanceof ServerLevel serverLevel) {
             serverLevel.sendParticles(new BlockParticleOption(ParticleTypes.BLOCK, state), pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5,

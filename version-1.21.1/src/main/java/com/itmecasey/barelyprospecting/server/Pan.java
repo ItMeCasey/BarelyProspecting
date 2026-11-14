@@ -1,5 +1,6 @@
 package com.itmecasey.barelyprospecting.server;
 
+import com.itmecasey.barelyprospecting.core.script.ScriptEvents;
 import com.itmecasey.barelyprospecting.ProspectMod;
 import com.itmecasey.barelyprospecting.block.PannableBlock;
 import com.itmecasey.barelyprospecting.core.Drop;
@@ -109,6 +110,8 @@ public final class Pan {
     static void finish(ServerLevel level, ServerPlayer player, ItemStack tray, Tier tier, InteractionHand hand, BlockPos pos, PannableBlock block) {
         BlockState state = level.getBlockState(pos);
         List<Drop> found = DropTables.roll(block.material(), tier.level(), tier.rolls(), ProspectMod.dice(level.getRandom()));
+        ScriptEvents.fire("panned", player.getName().getString(), Compat.dimensionId(level), pos.getX(), pos.getY(), pos.getZ(),
+                ProspectMod.idOf(block), "", found.stream().mapToInt(Drop::count).sum(), "", found);
         for (Drop drop : found) {
             Compat.drop(level, pos, drop);
         }

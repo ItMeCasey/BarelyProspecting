@@ -20,6 +20,7 @@ import net.minecraftforge.registries.RegisterEvent;
 public final class BarelyProspectingForge {
     public BarelyProspectingForge(FMLJavaModLoadingContext context) {
         Settings.install(new ForgeSettings());
+        com.itmecasey.barelyprospecting.core.script.Bridges.install();
         context.registerConfig(ModConfig.Type.COMMON, ForgeSettings.SPEC);
         RegisterEvent.getBus(context.getModBusGroup()).addListener(BarelyProspectingForge::register);
 

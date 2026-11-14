@@ -158,8 +158,154 @@ public final class SelfTest {
         basin(level, steve, new BlockPos(gx, y, gz + 6));
         crucible(level, steve, new BlockPos(gx + 3, y, gz + 6));
         lure(level, steve, new BlockPos(gx - 3, y, gz + 6));
+        scripting(level, steve, gx, y, gz);
         island(level);
         data();
+    }
+
+    private static void scriptUse(ServerLevel level, ServerPlayer player, ItemStack stack, BlockPos pos) {
+        player.setItemInHand(hand(), stack);
+        level.getBlockState(pos).useItemOn(stack, level, player, hand(), hit(pos));
+    }
+    /** The scripting API: events, read access, content changes, and a failing listener that must not reach the game. */
+    private static void scripting(ServerLevel level, ServerPlayer steve, int gx, int y, int gz) {
+        com.itmecasey.barelyprospecting.core.script.ProspectApi api = com.itmecasey.barelyprospecting.core.script.Bridges.API;
+        java.util.List<com.itmecasey.barelyprospecting.core.script.ScriptEvents.Event> seen = new java.util.ArrayList<>();
+        api.clearListeners();
+        for (String name : api.eventNames()) {
+            api.on(name, seen::add);
+        }
+        api.on("panned", e -> {
+            throw new IllegalStateException("script bug on purpose");
+        });
+        String probe = ModJsProbe.run(api);
+        if (probe == null) {
+            check("without ModJS the bridge installs nothing and nothing fails", !com.itmecasey.barelyprospecting.core.script.ModJsBridge.install(api));
+        } else {
+            check("with ModJS a real script reaches the BarelyProspecting global, listens and changes content" + (probe.isEmpty() ? "" : ": " + probe), probe.isEmpty());
+        }
+        api.clearListeners();
+        for (String name : api.eventNames()) {
+            api.on(name, seen::add);
+        }
+        api.on("panned", e -> {
+            throw new IllegalStateException("script bug on purpose");
+        });
+        String dim = "minecraft:overworld";
+
+        // Hammer.
+        BlockPos p = new BlockPos(gx + 6, y, gz + 1);
+        ItemStack hammer = new ItemStack(ModContent.PICK_HAMMER);
+        steve.setItemInHand(hand(), hammer);
+        level.setBlock(p, Blocks.DIRT.defaultBlockState(), 3);
+        hammer.getItem().useOn(new UseOnContext(steve, hand(), hit(p)));
+        check("scripts hear a hammer blow", seen.stream().anyMatch(e -> e.name().equals("hammered") && e.subject().equals("minecraft:dirt")
+                && e.result().equals("barelyprospecting:silt") && e.player().equals("Steve") && e.x() == p.getX() && e.dimension().equals(dim)));
+
+        // Pan, with a listener that throws.
+        ItemStack tray = new ItemStack(ModContent.WOODEN_TRAY);
+        steve.setItemInHand(hand(), tray);
+        Pan.debugFinish(level, steve, tray, Tier.WOOD, p);
+        check("scripts hear a pan, and a throwing listener does not stop it", seen.stream().anyMatch(e -> e.name().equals("panned")
+                && e.subject().equals("barelyprospecting:silt")) && level.getBlockState(p).getValue(PannableBlock.WEAR) == 1);
+        java.util.Map<String, Object> pan = api.blockAt(dim, p.getX(), p.getY(), p.getZ());
+        check("scripts can read a pannable block", "pannable".equals(pan.get("kind")) && "silt".equals(pan.get("material")) && Integer.valueOf(1).equals(pan.get("wear")));
+        check("a position with nothing of this mod reads as none", "none".equals(api.blockAt(dim, p.getX(), p.getY() + 5, p.getZ()).get("kind")));
+        level.setBlock(p, Blocks.AIR.defaultBlockState(), 3);
+        collect(level, p, Items.AIR, true);
+
+        // Basin.
+        BlockPos b = new BlockPos(gx + 6, y, gz + 4);
+        level.setBlock(b, ModContent.BASIN.defaultBlockState(), 3);
+        BasinBlockEntity basin = (BasinBlockEntity) level.getBlockEntity(b);
+        basin.basin().fill(Recipes.Fluid.WATER, 4);
+        scriptUse(level, steve, new ItemStack(ModContent.SILT, 2), b);
+        check("scripts hear a soak start", seen.stream().anyMatch(e -> e.name().equals("soakStarted") && e.subject().equals("barelyprospecting:silt")
+                && e.detail().equals("water") && e.result().equals("minecraft:clay_ball")));
+        for (int i = 0; i < 400; i++) {
+            BasinBlockEntity.serverTick(level, b, level.getBlockState(b), basin);
+        }
+        check("scripts hear a soak finish", seen.stream().anyMatch(e -> e.name().equals("soakFinished") && e.subject().equals("barelyprospecting:silt")
+                && e.result().equals("minecraft:clay_ball") && e.count() == 2));
+        java.util.Map<String, Object> basinRead = api.blockAt(dim, b.getX(), b.getY(), b.getZ());
+        check("scripts can read a basin", "basin".equals(basinRead.get("kind")) && "minecraft:clay_ball".equals(basinRead.get("result"))
+                && Integer.valueOf(2).equals(basinRead.get("resultCount")) && "water".equals(basinRead.get("fluid")));
+        level.setBlock(b, Blocks.AIR.defaultBlockState(), 3);
+
+        // Crucible.
+        BlockPos c = new BlockPos(gx + 6, y, gz + 7);
+        level.setBlock(c, ModContent.CRUCIBLE.defaultBlockState(), 3);
+        CrucibleBlockEntity crucible = (CrucibleBlockEntity) level.getBlockEntity(c);
+        scriptUse(level, steve, new ItemStack(ModContent.RUBBLE, 1), c);
+        scriptUse(level, steve, new ItemStack(Items.COAL, 1), c);
+        check("scripts hear a crucible fed melt and fuel", seen.stream().anyMatch(e -> e.name().equals("crucibleFed") && e.detail().equals("melt") && e.count() == 250)
+                && seen.stream().anyMatch(e -> e.name().equals("crucibleFed") && e.detail().equals("fuel") && e.subject().equals("minecraft:coal")));
+        java.util.Map<String, Object> crucibleRead = api.blockAt(dim, c.getX(), c.getY(), c.getZ());
+        check("scripts can read a crucible", "crucible".equals(crucibleRead.get("kind")) && Integer.valueOf(250).equals(crucibleRead.get("queued")));
+        crucible.crucible().load(0, 0, 500);
+        scriptUse(level, steve, new ItemStack(ModContent.CLAY_BUCKET_WATER), c);
+        check("scripts hear a quench", seen.stream().anyMatch(e -> e.name().equals("crucibleQuenched") && e.result().equals("minecraft:stone") && e.count() == 2));
+        level.setBlock(c, Blocks.AIR.defaultBlockState(), 3);
+
+        // Lure.
+        BlockPos l = new BlockPos(gx + 6, y, gz + 10);
+        level.setBlock(l, ModContent.LURE.defaultBlockState(), 3);
+        LureBlockEntity lure = (LureBlockEntity) level.getBlockEntity(l);
+        for (int i = 0; i < 3; i++) {
+            scriptUse(level, steve, new ItemStack(Items.WHEAT_SEEDS, 1), l);
+        }
+        check("scripts hear the lure fed", seen.stream().filter(e -> e.name().equals("lureFed") && e.detail().equals("farm")).count() == 3);
+        java.util.Map<String, Object> lureRead = api.blockAt(dim, l.getX(), l.getY(), l.getZ());
+        check("scripts can read a lure", "lure".equals(lureRead.get("kind")) && Integer.valueOf(3).equals(lureRead.get("meals")));
+        for (int i = 0; i < 400; i++) {
+            LureBlockEntity.serverTick(level, l, level.getBlockState(l), lure);
+        }
+        check("scripts hear the lure hatch", seen.stream().anyMatch(e -> e.name().equals("lureHatched") && e.detail().equals("farm")));
+        level.setBlock(l, Blocks.AIR.defaultBlockState(), 3);
+        collect(level, l, Items.AIR, true);
+
+        // Content: drop tables and rules.
+        api.clearDrops("silt");
+        api.setDrop("silt", "minecraft:diamond", 10, 1, 1, 0, 0.0);
+        check("a script can replace a drop table", api.drops("silt").size() == 1 && api.drops("silt").get(0).item().equals("minecraft:diamond"));
+        api.setDrop("silt", "minecraft:diamond", 10, 2, 2, 0, 0.0);
+        check("setting the same row twice replaces it", api.drops("silt").size() == 1 && api.drops("silt").get(0).min() == 2);
+        var rolled = com.itmecasey.barelyprospecting.core.DropTables.roll("silt", 0, 5, ProspectMod.dice(level.getRandom()));
+        check("a changed drop table is what panning rolls", rolled.size() == 1 && rolled.get(0).item().equals("minecraft:diamond") && rolled.get(0).count() == 10);
+        check("a script can remove a drop row", api.removeDrop("silt", "minecraft:diamond") && api.drops("silt").isEmpty());
+        api.setCrush("minecraft:glass", "minecraft:sand");
+        BlockPos h = new BlockPos(gx + 7, y, gz + 1);
+        level.setBlock(h, Blocks.GLASS.defaultBlockState(), 3);
+        hammer.getItem().useOn(new UseOnContext(steve, hand(), hit(h)));
+        check("a script rule makes the hammer crush glass", is(level, h, Blocks.SAND));
+        api.removeCrush("minecraft:dirt");
+        level.setBlock(h, Blocks.DIRT.defaultBlockState(), 3);
+        hammer.getItem().useOn(new UseOnContext(steve, hand(), hit(h)));
+        check("a script can remove a hammer rule", is(level, h, Blocks.DIRT));
+        api.setBait("minecraft:cookie", "farm");
+        api.setMelt("minecraft:glass", 100);
+        api.setFuel("minecraft:cookie", 50);
+        api.setSoak("minecraft:sand", "water", "minecraft:clay_ball", 1, 20, "");
+        check("scripts can add bait, melt, fuel and soak rules", Recipes.lureTable("minecraft:cookie") != null && Recipes.meltUnits("minecraft:glass") == 100
+                && Recipes.fuelTicks("minecraft:cookie") == 50 && Recipes.soak("minecraft:sand", Recipes.Fluid.WATER, dim) != null);
+        boolean rejected = false;
+        try {
+            api.setSoak("minecraft:sand", "oil", "minecraft:clay_ball", 1, 20, "");
+        } catch (IllegalArgumentException e) {
+            rejected = true;
+        }
+        boolean unknownEvent = false;
+        try {
+            api.on("nonsense", e -> { });
+        } catch (IllegalArgumentException e) {
+            unknownEvent = true;
+        }
+        check("a bad fluid or event name is a plain script error", rejected && unknownEvent);
+        api.resetContent();
+        api.clearListeners();
+        level.setBlock(h, Blocks.AIR.defaultBlockState(), 3);
+        check("resetting brings the mod's own rules back", api.drops("silt").size() > 5 && Recipes.crush("minecraft:dirt") != null
+                && Recipes.lureTable("minecraft:cookie") == null && Recipes.meltUnits("minecraft:glass") == 0);
     }
 
     private static void registry() {

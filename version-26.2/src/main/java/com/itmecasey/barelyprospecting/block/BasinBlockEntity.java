@@ -1,5 +1,6 @@
 package com.itmecasey.barelyprospecting.block;
 
+import com.itmecasey.barelyprospecting.core.script.ScriptEvents;
 import com.itmecasey.barelyprospecting.ModContent;
 import com.itmecasey.barelyprospecting.ProspectMod;
 import com.itmecasey.barelyprospecting.core.BasinState;
@@ -56,7 +57,10 @@ public class BasinBlockEntity extends BlockEntity {
             serverLevel.sendParticles(be.basin.fluid() == Recipes.Fluid.LAVA ? ParticleTypes.LAVA : ParticleTypes.BUBBLE_POP,
                     pos.getX() + 0.5, pos.getY() + 0.7, pos.getZ() + 0.5, 3, 0.25, 0.05, 0.25, 0.01);
         }
+        String soakedItem = be.basin.soakingItem();
         if (be.basin.tick(Compat.dimensionId(level))) {
+            ScriptEvents.fire("soakFinished", "", Compat.dimensionId(level), pos.getX(), pos.getY(), pos.getZ(), soakedItem,
+                    be.basin.resultItem(), be.basin.resultCount(), "", null);
             serverLevel.playSound(null, pos, SoundEvents.BREWING_STAND_BREW, SoundSource.BLOCKS, 0.6F, 1.2F);
             serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, pos.getX() + 0.5, pos.getY() + 0.8, pos.getZ() + 0.5, 6, 0.3, 0.2, 0.3, 0.0);
             ProspectMod.LOGGER.debug("Basin at {} finished soaking", pos);

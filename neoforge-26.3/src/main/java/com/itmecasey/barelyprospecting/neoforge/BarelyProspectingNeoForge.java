@@ -22,6 +22,7 @@ import net.neoforged.neoforge.registries.RegisterEvent;
 public final class BarelyProspectingNeoForge {
     public BarelyProspectingNeoForge(IEventBus modBus, ModContainer container) {
         Settings.install(new NeoForgeSettings());
+        com.itmecasey.barelyprospecting.core.script.Bridges.install();
         container.registerConfig(ModConfig.Type.LOCAL, NeoForgeSettings.SPEC, "barelyprospecting-common.toml");
         modBus.addListener(BarelyProspectingNeoForge::register);
 

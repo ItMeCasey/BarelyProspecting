@@ -22,6 +22,7 @@ public final class BarelyProspectingForge {
     // A constructor without arguments loads on both Forge 47.4 and the NeoForge 1.20.1 fork (47.1), which has no context argument.
     public BarelyProspectingForge() {
         Settings.install(new ForgeSettings());
+        com.itmecasey.barelyprospecting.core.script.Bridges.install();
         net.minecraftforge.fml.ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, ForgeSettings.SPEC);
         FMLJavaModLoadingContext.get().getModEventBus().addListener(BarelyProspectingForge::register);
 

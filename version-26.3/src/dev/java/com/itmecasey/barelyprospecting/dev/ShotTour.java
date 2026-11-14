@@ -193,6 +193,10 @@ public final class ShotTour {
             planViewers();
             return;
         }
+        if ("messages".equals(System.getenv("BARELYPROSPECTING_SHOTS"))) {
+            planMessages();
+            return;
+        }
         then(0, () -> {
             server("time set noon", "weather clear", "kill @e[type=!player]", "clear @p", "gamerule spawn_radius 0");
             Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
@@ -325,6 +329,60 @@ public final class ShotTour {
         until(() -> snapLureIdle, 1000);
         shoot("22_lure_drops", 10);
 
+        then(20, () -> {
+            Minecraft minecraft = Minecraft.getInstance();
+            minecraft.options.pauseOnLostFocus = pauseOnLostFocus;
+            LOGGER.info("PROSPECT-SHOTS DONE");
+            stage = Stage.DONE;
+            minecraft.stop();
+        });
+    }
+
+    /** The plain action-bar messages of the basin, crucible, lure and panning tray. */
+    private static void planMessages() {
+        then(0, () -> {
+            server("time set noon", "weather clear", "kill @e[type=!player]", "clear @p", "gamerule spawn_radius 0");
+            Minecraft.getInstance().options.setCameraType(CameraType.FIRST_PERSON);
+        });
+        then(5, () -> server("fill " + (SX - 8) + " " + SY + " " + (SZ - 8) + " " + (SX + 8) + " " + SY + " " + (SZ + 8) + " minecraft:smooth_stone",
+                "fill " + (SX - 8) + " " + (SY + 1) + " " + (SZ - 8) + " " + (SX + 8) + " " + (SY + 6) + " " + (SZ + 8) + " minecraft:air",
+                "tp @p " + (SX + 0.5) + " " + (SY + 1) + " " + (SZ + 0.5) + " 0 0"));
+        // Basin: dry, then wrong item.
+        then(10, () -> server("setblock " + xyz(0, 0, 3) + " barelyprospecting:basin"));
+        then(10, () -> view(0.0, 1.6, 0.0, 0, 0, 3));
+        then(5, () -> hold(ModContent.SILT.asItem()));
+        then(10, () -> useOn(at(0, 0, 3)));
+        shoot("m1_basin_dry", 6);
+        then(5, () -> hold(ModContent.CLAY_BUCKET_WATER));
+        then(10, () -> useOn(at(0, 0, 3)));
+        then(20, () -> hold(ModContent.FINE_GRIT.asItem()));
+        then(25, () -> useOn(at(0, 0, 3)));
+        shoot("m2_basin_wrong", 6);
+        // Crucible: not enough lava for a bucket.
+        then(5, () -> server("setblock " + xyz(0, 0, 3) + " minecraft:air", "setblock " + xyz(0, 0, 4) + " barelyprospecting:crucible"));
+        then(10, () -> view(0.0, 1.6, 0.0, 0, 0, 4));
+        then(5, () -> hold(ModContent.CLAY_BUCKET));
+        then(10, () -> useOn(at(0, 0, 4)));
+        shoot("m3_crucible_needs_lava", 6);
+        // Lure: one kind of bait at a time.
+        then(5, () -> server("setblock " + xyz(0, 0, 4) + " minecraft:air", "setblock " + xyz(0, 0, 5) + " barelyprospecting:lure"));
+        then(10, () -> view(0.0, 1.6, 2.5, 0, 0, 5));
+        then(5, () -> hold(net.minecraft.world.item.Items.WHEAT_SEEDS));
+        then(10, () -> useOn(at(0, 0, 5)));
+        then(5, () -> hold(net.minecraft.world.item.Items.BONE));
+        then(10, () -> useOn(at(0, 0, 5)));
+        shoot("m4_lure_other_bait", 6);
+        // Panning tray: too weak for Nether silt.
+        then(5, () -> server("setblock " + xyz(0, 0, 5) + " minecraft:air", "setblock " + xyz(0, 0, 3) + " barelyprospecting:nether_silt",
+                "tp @p " + (SX + 0.5) + " " + (SY + 1) + " " + (SZ + 0.5) + " 0 0"));
+        then(15, () -> view(0.0, 1.6, 0.0, 0, 0, 3));
+        then(5, () -> hold(ModContent.WOODEN_TRAY));
+        then(5, () -> {
+            Minecraft m = Minecraft.getInstance();
+            holdingUse = true;
+            m.gameMode.useItem(m.player, InteractionHand.MAIN_HAND);
+        });
+        shoot("m5_tray_too_weak", 30);
         then(20, () -> {
             Minecraft minecraft = Minecraft.getInstance();
             minecraft.options.pauseOnLostFocus = pauseOnLostFocus;

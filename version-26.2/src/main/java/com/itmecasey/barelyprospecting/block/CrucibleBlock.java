@@ -1,5 +1,6 @@
 package com.itmecasey.barelyprospecting.block;
 
+import com.itmecasey.barelyprospecting.core.script.ScriptEvents;
 import com.itmecasey.barelyprospecting.ModContent;
 import com.itmecasey.barelyprospecting.ProspectMod;
 import com.itmecasey.barelyprospecting.core.CrucibleState;
@@ -110,6 +111,8 @@ public class CrucibleBlock extends BaseEntityBlock {
                 stack.shrink(1);
             }
             level.playSound(null, pos, melts ? SoundEvents.GRAVEL_PLACE : SoundEvents.FIRECHARGE_USE, SoundSource.BLOCKS, 0.6F, 1.0F);
+            ScriptEvents.fire("crucibleFed", player.getName().getString(), Compat.dimensionId(level), pos.getX(), pos.getY(), pos.getZ(),
+                    id, "", melts ? Recipes.meltUnits(id) : Recipes.fuelTicks(id), melts ? "melt" : "fuel", null);
             be.changed();
         } else {
             Compat.bar(player, melts ? "message.barelyprospecting.crucible_full" : "message.barelyprospecting.crucible_fire_full");
@@ -136,6 +139,8 @@ public class CrucibleBlock extends BaseEntityBlock {
                 } else {
                     be.changed();
                     level.playSound(null, pos, SoundEvents.LAVA_EXTINGUISH, SoundSource.BLOCKS, 0.8F, 1.0F);
+                    ScriptEvents.fire("crucibleQuenched", player.getName().getString(), Compat.dimensionId(level), pos.getX(), pos.getY(), pos.getZ(),
+                            "", drop.item(), drop.count(), "", null);
                     Compat.give(player, ProspectMod.stack(drop.item(), drop.count()));
                     player.setItemInHand(hand, new ItemStack(ModContent.CLAY_BUCKET));
                 }

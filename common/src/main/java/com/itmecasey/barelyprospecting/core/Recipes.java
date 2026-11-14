@@ -2,6 +2,8 @@ package com.itmecasey.barelyprospecting.core;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * The fixed rules of the hands-on steps, as data: what the hammer crushes into, what a basin soaks, what a crucible melts and
@@ -27,7 +29,7 @@ public final class Recipes {
         NONE, WATER, LAVA
     }
 
-    private static final List<Crush> CRUSH = List.of(
+    private static final List<Crush> CRUSH_DEFAULT = List.of(
             // Dirt becomes silt, the first thing a tray can work.
             new Crush("minecraft:dirt", MOD + "silt"),
             new Crush("minecraft:grass_block", MOD + "silt"),
@@ -53,13 +55,13 @@ public final class Recipes {
             new Crush("minecraft:netherrack", MOD + "nether_silt"),
             new Crush("minecraft:end_stone", MOD + "end_silt"));
 
-    private static final List<Soak> SOAK = List.of(
+    private static final List<Soak> SOAK_DEFAULT = List.of(
             new Soak(MOD + "silt", Fluid.WATER, "minecraft:clay_ball", 2, 200, ""),
             new Soak(MOD + "fine_grit", Fluid.LAVA, MOD + "nether_silt", 1, 400, "minecraft:the_nether"),
             new Soak(MOD + "nether_silt", Fluid.WATER, MOD + "end_silt", 1, 400, "minecraft:the_end"));
 
     /** Units of lava a block or item turns into in a crucible. A full clay bucket is {@link #BUCKET}. */
-    private static final Map<String, Integer> MELT = Map.of(
+    private static final Map<String, Integer> MELT_DEFAULT = Map.of(
             MOD + "rubble", 250,
             MOD + "grit", 100,
             MOD + "fine_grit", 50,
@@ -67,7 +69,7 @@ public final class Recipes {
             "minecraft:netherrack", 250);
 
     /** Burn time in ticks of what you feed a crucible's fire. */
-    private static final Map<String, Integer> FUEL = Map.of(
+    private static final Map<String, Integer> FUEL_DEFAULT = Map.of(
             MOD + "twig", 60,
             "minecraft:stick", 100,
             MOD + "coal_dust", 400,
@@ -76,7 +78,7 @@ public final class Recipes {
             "minecraft:blaze_powder", 1200,
             "minecraft:dried_kelp_block", 4000);
 
-    private static final Map<String, String> BAIT = Map.of(
+    private static final Map<String, String> BAIT_DEFAULT = Map.of(
             "minecraft:wheat_seeds", DropTables.LURE_FARM,
             "minecraft:beetroot_seeds", DropTables.LURE_FARM,
             "minecraft:melon_seeds", DropTables.LURE_FARM,
@@ -85,12 +87,77 @@ public final class Recipes {
             "minecraft:bone", DropTables.LURE_NIGHT,
             "minecraft:spider_eye", DropTables.LURE_NIGHT);
 
+    private static final List<Crush> CRUSH = new CopyOnWriteArrayList<>(CRUSH_DEFAULT);
+    private static final List<Soak> SOAK = new CopyOnWriteArrayList<>(SOAK_DEFAULT);
+    private static final Map<String, Integer> MELT = new ConcurrentHashMap<>(MELT_DEFAULT);
+    private static final Map<String, Integer> FUEL = new ConcurrentHashMap<>(FUEL_DEFAULT);
+    private static final Map<String, String> BAIT = new ConcurrentHashMap<>(BAIT_DEFAULT);
+
     /** Lava units in one bucket, and in one block of obsidian. */
     public static final int BUCKET = 1000;
     public static final int OBSIDIAN_UNITS = 1000;
     public static final int STONE_UNITS = 250;
 
     private Recipes() {
+    }
+
+    /** Sets what a hammer blow turns {@code from} into; replaces an existing rule for the same block. */
+    public static synchronized void setCrush(String from, String to) {
+        CRUSH.removeIf(c -> c.from().equals(from));
+        CRUSH.add(new Crush(from, to));
+    }
+
+    public static synchronized boolean removeCrush(String from) {
+        return CRUSH.removeIf(c -> c.from().equals(from));
+    }
+
+    /** Adds a soak; replaces the soak of the same input, fluid and dimension. */
+    public static synchronized void setSoak(Soak soak) {
+        SOAK.removeIf(s -> s.input().equals(soak.input()) && s.fluid() == soak.fluid() && s.dimension().equals(soak.dimension()));
+        SOAK.add(soak);
+    }
+
+    /** Removes every soak of this input and fluid (any dimension). */
+    public static synchronized boolean removeSoak(String input, Fluid fluid) {
+        return SOAK.removeIf(s -> s.input().equals(input) && s.fluid() == fluid);
+    }
+
+    public static void setMelt(String item, int units) {
+        MELT.put(item, units);
+    }
+
+    public static boolean removeMelt(String item) {
+        return MELT.remove(item) != null;
+    }
+
+    public static void setFuel(String item, int ticks) {
+        FUEL.put(item, ticks);
+    }
+
+    public static boolean removeFuel(String item) {
+        return FUEL.remove(item) != null;
+    }
+
+    public static void setBait(String item, String table) {
+        BAIT.put(item, table);
+    }
+
+    public static boolean removeBait(String item) {
+        return BAIT.remove(item) != null;
+    }
+
+    /** Back to the mod's own rules. */
+    public static synchronized void resetDefaults() {
+        CRUSH.clear();
+        CRUSH.addAll(CRUSH_DEFAULT);
+        SOAK.clear();
+        SOAK.addAll(SOAK_DEFAULT);
+        MELT.clear();
+        MELT.putAll(MELT_DEFAULT);
+        FUEL.clear();
+        FUEL.putAll(FUEL_DEFAULT);
+        BAIT.clear();
+        BAIT.putAll(BAIT_DEFAULT);
     }
 
     public static List<Crush> crushes() {

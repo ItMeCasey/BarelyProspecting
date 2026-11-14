@@ -49,6 +49,7 @@ public final class StarterIsland {
 
     /** Builds the island when this is a void-preset world and it has not been built yet. Returns whether it built one. */
     public static boolean ensure(MinecraftServer server) {
+        ScriptState.attach(server);
         ServerLevel overworld = server.overworld();
         if (!Settings.buildStarterIsland() || !isVoidWorld(overworld) || Files.exists(marker(server))) {
             return false;

@@ -1,5 +1,6 @@
 package com.itmecasey.barelyprospecting.block;
 
+import com.itmecasey.barelyprospecting.core.script.ScriptEvents;
 import com.itmecasey.barelyprospecting.ModContent;
 import com.itmecasey.barelyprospecting.ProspectMod;
 import com.itmecasey.barelyprospecting.core.LureState;
@@ -88,7 +89,10 @@ public class LureBlock extends BaseEntityBlock {
             return InteractionResult.SUCCESS;
         }
         if (level.getBlockEntity(pos) instanceof LureBlockEntity be) {
-            if (be.lure().feed(ProspectMod.idOf(stack.getItem()))) {
+            String baitId = ProspectMod.idOf(stack.getItem());
+            if (be.lure().feed(baitId)) {
+                ScriptEvents.fire("lureFed", player.getName().getString(), Compat.dimensionId(level), pos.getX(), pos.getY(), pos.getZ(),
+                        baitId, "", be.lure().meals(), be.lure().table(), null);
                 if (!player.getAbilities().instabuild) {
                     stack.shrink(1);
                 }

@@ -1,6 +1,7 @@
 package com.itmecasey.barelyprospecting.core;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,7 +24,8 @@ public final class DropTables {
     public static final String LURE_FARM = "farm";
     public static final String LURE_NIGHT = "night";
 
-    private static final Map<String, List<DropEntry>> TABLES = new LinkedHashMap<>();
+    private static final Map<String, List<DropEntry>> TABLES = Collections.synchronizedMap(new LinkedHashMap<>());
+    private static final Map<String, List<DropEntry>> DEFAULTS = new LinkedHashMap<>();
 
     static {
         TABLES.put(SILT, List.of(
@@ -117,7 +119,55 @@ public final class DropTables {
                 vanilla("ender_pearl", 4, 1, 1, 0, 0.0)));
     }
 
+    static {
+        DEFAULTS.putAll(TABLES);
+    }
+
     private DropTables() {
+    }
+
+    /** Adds a row, or replaces the row of the same item (so a script that runs twice does not double a row). Creates the table if new. */
+    public static void setRow(String table, DropEntry row) {
+        synchronized (TABLES) {
+            List<DropEntry> rows = new ArrayList<>(TABLES.getOrDefault(table, List.of()));
+            boolean replaced = false;
+            for (int i = 0; i < rows.size(); i++) {
+                if (rows.get(i).item().equals(row.item())) {
+                    rows.set(i, row);
+                    replaced = true;
+                    break;
+                }
+            }
+            if (!replaced) {
+                rows.add(row);
+            }
+            TABLES.put(table, List.copyOf(rows));
+        }
+    }
+
+    /** Removes the row of this item; returns whether there was one. */
+    public static boolean removeRow(String table, String item) {
+        synchronized (TABLES) {
+            List<DropEntry> rows = new ArrayList<>(TABLES.getOrDefault(table, List.of()));
+            boolean removed = rows.removeIf(r -> r.item().equals(item));
+            if (removed) {
+                TABLES.put(table, List.copyOf(rows));
+            }
+            return removed;
+        }
+    }
+
+    /** Empties a table (it keeps its name, so rows can be added again). */
+    public static void clearTable(String table) {
+        TABLES.put(table, List.of());
+    }
+
+    /** Back to the mod's own tables. */
+    public static void resetDefaults() {
+        synchronized (TABLES) {
+            TABLES.clear();
+            TABLES.putAll(DEFAULTS);
+        }
     }
 
     private static DropEntry none(int weight) {
@@ -137,8 +187,10 @@ public final class DropTables {
         return TABLES.getOrDefault(name, List.of());
     }
 
-    public static Iterable<String> names() {
-        return TABLES.keySet();
+    public static List<String> names() {
+        synchronized (TABLES) {
+            return List.copyOf(TABLES.keySet());
+        }
     }
 
     /** True for the five materials a tray can pan. */

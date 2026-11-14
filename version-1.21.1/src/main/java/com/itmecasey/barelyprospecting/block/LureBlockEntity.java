@@ -1,5 +1,6 @@
 package com.itmecasey.barelyprospecting.block;
 
+import com.itmecasey.barelyprospecting.core.script.ScriptEvents;
 import com.itmecasey.barelyprospecting.ModContent;
 import com.itmecasey.barelyprospecting.ProspectMod;
 import com.itmecasey.barelyprospecting.core.Drop;
@@ -51,8 +52,11 @@ public class LureBlockEntity extends BlockEntity {
         if (level.getGameTime() % 10L == 0L) {
             serverLevel.sendParticles(ParticleTypes.SMOKE, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, 2, 0.2, 0.1, 0.2, 0.0);
         }
+        String hatchTable = be.lure.table();
         List<Drop> drops = be.lure.tick(ProspectMod.dice(level.getRandom()));
         if (drops != null) {
+            ScriptEvents.fire("lureHatched", "", com.itmecasey.barelyprospecting.server.Compat.dimensionId(level), pos.getX(), pos.getY(), pos.getZ(), "", "",
+                    drops.stream().mapToInt(Drop::count).sum(), hatchTable, drops);
             serverLevel.playSound(null, pos, SoundEvents.ALLAY_ITEM_GIVEN, SoundSource.BLOCKS, 0.8F, 0.8F);
             serverLevel.sendParticles(ParticleTypes.HAPPY_VILLAGER, pos.getX() + 0.5, pos.getY() + 0.6, pos.getZ() + 0.5, 8, 0.3, 0.2, 0.3, 0.0);
             for (Drop drop : drops) {

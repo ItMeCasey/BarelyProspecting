@@ -1,5 +1,6 @@
 package com.itmecasey.barelyprospecting.block;
 
+import com.itmecasey.barelyprospecting.core.script.ScriptEvents;
 import com.itmecasey.barelyprospecting.ModContent;
 import com.itmecasey.barelyprospecting.ProspectMod;
 import com.itmecasey.barelyprospecting.core.BasinState;
@@ -135,6 +136,8 @@ public class BasinBlock extends BaseEntityBlock {
             stack.shrink(1);
         }
         level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 0.4F, 1.4F);
+        ScriptEvents.fire("soakStarted", player.getName().getString(), Compat.dimensionId(level), pos.getX(), pos.getY(), pos.getZ(),
+                recipe.input(), recipe.output(), recipe.count(), recipe.fluid().name().toLowerCase(java.util.Locale.ROOT), null);
         be.changed();
         return InteractionResult.SUCCESS;
     }
