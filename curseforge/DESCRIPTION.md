@@ -15,6 +15,7 @@ Docs and the numbers: [itmecasey.com/wiki/barelyprospecting](https://itmecasey.c
 - **Crucible:** feed it fuel and rubble by hand. Take lava in a clay bucket, or quench it for stone and obsidian.
 - **Lure:** three offerings of bait, a short wait, and something answers with string, bone, gunpowder or an ender pearl.
 - **Void Island world type:** a small island, one tree and a starter chest, built the first time the world starts.
+- **ModJS scripting:** with ModJS, scripts can listen to panning, hammering, soaking, the crucible and the lure, read the state of a block, and add, replace or remove drop rows and rules.
 - **Shared and server friendly:** basins, crucibles and lures keep their state in the block, so a whole team uses the same ones.
 
 ![How it works](https://raw.githubusercontent.com/ItMeCasey/BarelyProspecting/main/branding/banners/h_how.png)
